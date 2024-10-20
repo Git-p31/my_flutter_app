@@ -1,13 +1,36 @@
 plugins {
     id 'com.android.application'
     id 'kotlin-android'
-    // Flutter Gradle Plugin должен быть подключен после плагинов Android и Kotlin.
+    // Flutter Gradle Plugin підключається після Android та Kotlin плагінів
     id 'dev.flutter.flutter-gradle-plugin'
 }
 
 android {
-    namespace = "com.example.my_flutter_app" // Убедитесь, что здесь указан правильный пакет приложения
-    compileSdk = 33 // Укажите актуальную версию SDK
+    namespace "com.example.Kemo_app" // Вкажіть своє ім'я пакету
+    compileSdkVersion 33
+
+    defaultConfig {
+        applicationId "com.example.Kemo_app"
+        minSdkVersion 21
+        targetSdkVersion 33
+        versionCode 1
+        versionName "1.0"
+    }
+
+    buildTypes {
+        release {
+            // Якщо не налаштована підпис, приберіть рядок signingConfig
+            // signingConfig signingConfigs.release
+
+            // Вимкнено стиснення ресурсів та мінімізація коду
+            minifyEnabled false
+            shrinkResources false
+        }
+        debug {
+            // Білд для debug-режиму
+            debuggable true
+        }
+    }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
@@ -17,26 +40,7 @@ android {
     kotlinOptions {
         jvmTarget = "1.8"
     }
-
-    defaultConfig {
-        applicationId "com.example.my_flutter_app" // Укажите уникальный applicationId для вашего приложения
-        minSdkVersion 21 // Минимальная поддерживаемая версия Android
-        targetSdkVersion 33 // Текущая версия SDK
-        versionCode 1 // Увеличивайте это значение при каждом обновлении
-        versionName "1.0" // Текущая версия вашего приложения
-    }
-
-    buildTypes {
-        release {
-            // Отключите подпись APK, если не настроена
-            // signingConfig signingConfigs.release
-
-            minifyEnabled false
-            shrinkResources false
-        }
-    }
 }
-
 flutter {
-    source = "../.." // Указывает путь к проекту Flutter
+    source = "E:/Kemo-app/my_flutter_app" // Вкажіть правильний шлях до вашого Flutter-проєкту, якщо потрібно
 }
