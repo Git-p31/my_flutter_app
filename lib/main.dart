@@ -34,7 +34,7 @@ class _MyHomePageState extends State<MyHomePage> {
 
   static final List<Widget> _widgetOptions = <Widget>[
     const Text('Главная страница', style: TextStyle(fontSize: 24)),
-    const LivestreamsPage(), // Страница с трансляциями
+    const LivestreamsPage(),
     const Text('Цдака', style: TextStyle(fontSize: 24)),
   ];
 
@@ -90,6 +90,41 @@ class _MyHomePageState extends State<MyHomePage> {
                 _onItemTapped(2);
               },
             ),
+            ListTile(
+              leading: const Icon(Icons.event),
+              title: const Text('События'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.announcement),
+              title: const Text('Объявления'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.chat),
+              title: const Text('Чаты'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.work),
+              title: const Text('Воркшопы'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
+            ListTile(
+              leading: const Icon(Icons.store),
+              title: const Text('Магазин'),
+              onTap: () {
+                Navigator.pop(context);
+              },
+            ),
           ],
         ),
       ),
@@ -142,7 +177,6 @@ class _LivestreamsPageState extends State<LivestreamsPage> {
     fetchLiveStreams();
   }
 
-  // Метод для получения информации о прямых трансляциях
   Future<void> fetchLiveStreams() async {
     final shomerTvLive = await getLiveStreamId(shomerTvChannelId);
     final kemoNetworkLive = await getLiveStreamId(kemoNetworkChannelId);
@@ -153,7 +187,6 @@ class _LivestreamsPageState extends State<LivestreamsPage> {
     });
   }
 
-  // Запрос к YouTube API для получения ID текущей трансляции
   Future<String?> getLiveStreamId(String channelId) async {
     final url =
         'https://www.googleapis.com/youtube/v3/search?part=snippet&channelId=$channelId&eventType=live&type=video&key=$apiKey';
