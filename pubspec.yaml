@@ -1,0 +1,55 @@
+name: my_flutter_app
+
+description: "A new Flutter project."
+
+publish_to: 'none' # Remove this line if you plan to publish to pub.dev
+
+version: 1.0.0+1
+
+environment:
+  sdk: '>=3.5.0 <4.0.0' # Updated range for better compatibility
+
+dependencies:
+  flutter:
+    sdk: flutter
+
+  # Database dependencies
+  path: ^1.8.3            # Пакет для работы с путями файлов
+  path_provider: ^2.1.2   # Пакет для получения путей к файлам
+  sqflite: ^2.2.8+4       # SQLite для локальной базы данных
+  crypto: ^3.0.3          # Для хеширования данных (например, паролей)
+  csv: ^5.0.2             # Для экспорта данных в CSV формат
+  shared_preferences: ^2.2.2
+  intl: ^0.19.0
+
+  # Firebase dependencies
+  cloud_firestore: ^4.8.0 # Актуальная версия для Firestore
+  firebase_core: ^2.24.2  # Актуальная версия для инициализации Firebase
+
+  # Логирование
+  logger: ^2.0.2          # Логирование для отладки
+
+  # WebView для отображения веб-контента
+  webview_flutter: ^4.10.0
+
+  # Cupertino иконки для iOS-стиля
+  cupertino_icons: ^1.0.8
+
+  # HTTP для сетевых запросов
+  http: ^1.2.1
+
+  # Открытие URL-адресов
+  url_launcher: ^6.3.0
+
+  # Управление состоянием
+  provider: ^6.1.2        # Обновлённая версия для совместимости
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+
+  # Анализ кода для Flutter
+  flutter_lints: ^3.0.0
+
+flutter:
+  uses-material-design: true
