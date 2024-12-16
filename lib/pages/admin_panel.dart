@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:image_picker/image_picker.dart';
+import 'dart:io';
 import 'database_helper.dart';
 
 class AdminPanel extends StatefulWidget {
@@ -13,17 +15,37 @@ class _AdminPanelState extends State<AdminPanel> {
   final TextEditingController _titleController = TextEditingController();
   final TextEditingController _contentController = TextEditingController();
   bool _isLoading = false;
+  String _selectedCategory = 'news';
+  File? _selectedImage;
 
-  void _addNews() async {
+  // Функция для выбора изображения
+  Future<void> _pickImage() async {
+    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      setState(() {
+        _selectedImage = File(pickedFile.path);
+      });
+    }
+  }
+
+  void _addEntry() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
         _isLoading = true;
       });
 
-      await DatabaseHelper.instance.insertNews(
-        _titleController.text,
-        _contentController.text,
-      );
+      if (_selectedCategory == 'news') {
+        await DatabaseHelper.instance.insertNews(
+          _titleController.text,
+          _contentController.text,
+        );
+      } else if (_selectedCategory == 'event') {
+        await DatabaseHelper.instance.insertEvent(
+          _titleController.text,
+          _contentController.text,
+          _selectedImage?.path ?? '',
+        );
+      }
 
       if (!mounted) return;
 
@@ -31,10 +53,11 @@ class _AdminPanelState extends State<AdminPanel> {
         _isLoading = false;
         _titleController.clear();
         _contentController.clear();
+        _selectedImage = null;
       });
 
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Новость добавлена!')),
+        SnackBar(content: Text(_selectedCategory == 'news' ? 'Новость добавлена!' : 'Событие добавлено!')),
       );
     }
   }
@@ -50,9 +73,26 @@ class _AdminPanelState extends State<AdminPanel> {
         padding: const EdgeInsets.all(16.0),
         child: Form(
           key: _formKey,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
+          child: ListView(
             children: [
+              DropdownButtonFormField<String>(
+                value: _selectedCategory,
+                decoration: const InputDecoration(
+                  labelText: 'Категория',
+                  border: OutlineInputBorder(),
+                ),
+                items: const [
+                  DropdownMenuItem(value: 'news', child: Text('Новость')),
+                  DropdownMenuItem(value: 'event', child: Text('Событие')),
+                ],
+                onChanged: (value) {
+                  setState(() {
+                    _selectedCategory = value!;
+                    _selectedImage = null; // Сбрасываем изображение при смене категории
+                  });
+                },
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _titleController,
                 decoration: const InputDecoration(
@@ -71,13 +111,25 @@ class _AdminPanelState extends State<AdminPanel> {
                 maxLines: 4,
                 validator: (value) => value == null || value.isEmpty ? 'Введите содержание' : null,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 16),
+              if (_selectedCategory == 'event') ...[
+                ElevatedButton.icon(
+                  onPressed: _pickImage,
+                  icon: const Icon(Icons.image),
+                  label: const Text('Выбрать изображение'),
+                ),
+                const SizedBox(height: 16),
+                _selectedImage != null
+                    ? Image.file(_selectedImage!, height: 150, fit: BoxFit.cover)
+                    : const SizedBox(),
+                const SizedBox(height: 16),
+              ],
               _isLoading
                   ? const Center(child: CircularProgressIndicator())
                   : ElevatedButton.icon(
-                      onPressed: _addNews,
+                      onPressed: _addEntry,
                       icon: const Icon(Icons.add),
-                      label: const Text('Добавить новость'),
+                      label: const Text('Добавить'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: Colors.blue,
                         foregroundColor: Colors.white,
