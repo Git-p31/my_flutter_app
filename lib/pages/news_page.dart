@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
-import 'database_helper.dart';
+import '../database_helper.dart';
+
 
 class NewsPage extends StatefulWidget {
   const NewsPage({super.key});

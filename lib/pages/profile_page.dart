@@ -1,20 +1,70 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_panel.dart';
+import 'news_page.dart'; // Импорт NewsPage
+import 'auth_page.dart';
 
 class ProfilePage extends StatelessWidget {
+  final String userId;
   final String userName;
   final String userEmail;
+  final String userRole;
 
   const ProfilePage({
     super.key,
+    required this.userId,
     required this.userName,
     required this.userEmail,
+    this.userRole = 'user',
   });
 
-  void _openAdminPanel(BuildContext context) {
+  Future<void> _openAdminPanel(BuildContext context) async {
     Navigator.push(
       context,
-      MaterialPageRoute(builder: (context) => const AdminPanel()),
+      MaterialPageRoute(builder: (context) => const AdminDashboard()),
+    );
+  }
+
+  Future<void> _logout(BuildContext context) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.clear();
+
+    if (!context.mounted) return;
+
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => const AuthPage()),
+      (Route<dynamic> route) => false,
+    );
+  }
+
+  void _confirmLogout(BuildContext context) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Подтвердите выход'),
+        content: const Text('Вы уверены, что хотите выйти?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              _logout(context);
+            },
+            child: const Text('Выйти'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _navigateToNewsPage(BuildContext context) {
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(builder: (context) => const NewsPage()), // Переход на NewsPage
     );
   }
 
@@ -23,7 +73,17 @@ class ProfilePage extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Профиль'),
-        backgroundColor: Colors.blue,
+        leading: IconButton(
+          icon: const Icon(Icons.arrow_back),
+          onPressed: () => _navigateToNewsPage(context), // Переход на NewsPage
+        ),
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.logout),
+            onPressed: () => _confirmLogout(context),
+            tooltip: 'Выйти',
+          ),
+        ],
       ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
@@ -41,23 +101,32 @@ class ProfilePage extends StatelessWidget {
               ),
             ),
             const SizedBox(height: 20),
-            Text('Имя: $userName', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 10),
-            Text('Email: $userEmail', style: const TextStyle(fontSize: 18)),
-            const SizedBox(height: 30),
-            Center(
-              child: ElevatedButton(
-                onPressed: () => _openAdminPanel(context),
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                ),
-                child: const Text(
-                  'Перейти в админ-панель',
-                  style: TextStyle(fontSize: 18, color: Colors.white),
+            Divider(color: Colors.grey[300]),
+            ListTile(
+              leading: const Icon(Icons.person),
+              title: Text('Имя: $userName', style: const TextStyle(fontSize: 18)),
+            ),
+            Divider(color: Colors.grey[300]),
+            ListTile(
+              leading: const Icon(Icons.email),
+              title: Text('Email: $userEmail', style: const TextStyle(fontSize: 18)),
+            ),
+            Divider(color: Colors.grey[300]),
+            ListTile(
+              leading: const Icon(Icons.perm_identity),
+              title: Text('ID: $userId', style: const TextStyle(fontSize: 18)),
+            ),
+            if (userId == '1' || userRole == 'admin')
+              Padding(
+                padding: const EdgeInsets.only(top: 30.0),
+                child: Center(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _openAdminPanel(context),
+                    icon: const Icon(Icons.admin_panel_settings),
+                    label: const Text('Перейти в админ-панель'),
+                  ),
                 ),
               ),
-            ),
           ],
         ),
       ),

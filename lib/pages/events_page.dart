@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'dart:io';
-import 'database_helper.dart';
+import '../database_helper.dart';
+
 
 class EventsPage extends StatefulWidget {
   const EventsPage({super.key});

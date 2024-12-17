@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'pages/broadcasts_page.dart';
 import 'pages/charity_page.dart';
 import 'pages/events_page.dart';
 import 'pages/news_page.dart';
 import 'pages/workshops_page.dart';
-import 'pages/profile_page.dart'; // Импорт для профиля
+import 'pages/profile_page.dart';
+import 'pages/auth_page.dart';
+import 'pages/settings_page.dart';
 
 void main() {
   runApp(const MyApp());
@@ -21,13 +24,31 @@ class _MyAppState extends State<MyApp> {
   bool _isDarkTheme = false;
   bool _notificationsEnabled = true;
 
-  void _toggleTheme(bool isDark) {
+  @override
+  void initState() {
+    super.initState();
+    _loadPreferences();
+  }
+
+  Future<void> _loadPreferences() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
+      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
+    });
+  }
+
+  void _toggleTheme(bool isDark) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkTheme', isDark);
     setState(() {
       _isDarkTheme = isDark;
     });
   }
 
-  void _toggleNotifications(bool isEnabled) {
+  void _toggleNotifications(bool isEnabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificationsEnabled', isEnabled);
     setState(() {
       _notificationsEnabled = isEnabled;
     });
@@ -86,7 +107,7 @@ class _HomePageState extends State<HomePage> {
     _pages = [
       const NewsPage(),
       const EventsPage(),
-            BroadcastsPage(),
+      const BroadcastsPage(),
       const WorkshopsPage(),
       const CharityPage(),
     ];
@@ -96,20 +117,44 @@ class _HomePageState extends State<HomePage> {
     setState(() {
       _selectedIndex = index;
     });
-    Navigator.pop(context); // Закрывает drawer после выбора страницы
+    Navigator.pop(context);
   }
 
-  void _openProfile() {
-    Navigator.push(
-      context,
-      MaterialPageRoute(
-        builder: (context) => const ProfilePage(
-          userName: 'Иван Иванов',
-          userEmail: 'ivan@example.com',
+void _openProfile() async {
+  final prefs = await SharedPreferences.getInstance();
+  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+
+  if (!mounted) return; // Проверка перед использованием BuildContext
+
+  if (isLoggedIn) {
+    final userId = prefs.getString('id') ?? 'Неизвестный ID';
+    final userName = prefs.getString('username') ?? 'Пользователь';
+    final userEmail = prefs.getString('email') ?? 'user@example.com';
+    final userRole = prefs.getString('role') ?? 'user';
+
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfilePage(
+            userId: userId,
+            userName: userName,
+            userEmail: userEmail,
+            userRole: userRole,
+          ),
         ),
-      ),
-    );
+      );
+    }
+  } else {
+    if (mounted) {
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthPage()),
+      );
+    }
   }
+}
+
 
   void _openSettings() {
     showModalBottomSheet(
@@ -181,47 +226,6 @@ class _HomePageState extends State<HomePage> {
       title: Text(title),
       selected: _selectedIndex == index,
       onTap: () => _onItemTapped(index),
-    );
-  }
-}
-
-class SettingsPage extends StatelessWidget {
-  final Function(bool) onToggleTheme;
-  final Function(bool) onToggleNotifications;
-  final bool isDarkTheme;
-  final bool notificationsEnabled;
-
-  const SettingsPage({
-    super.key,
-    required this.onToggleTheme,
-    required this.onToggleNotifications,
-    required this.isDarkTheme,
-    required this.notificationsEnabled,
-  });
-
-  @override
-  Widget build(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.all(16.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          SwitchListTile(
-            title: const Text('Тёмная тема'),
-            value: isDarkTheme,
-            onChanged: onToggleTheme,
-          ),
-          SwitchListTile(
-            title: const Text('Уведомления'),
-            value: notificationsEnabled,
-            onChanged: onToggleNotifications,
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('Закрыть'),
-          ),
-        ],
-      ),
     );
   }
 }

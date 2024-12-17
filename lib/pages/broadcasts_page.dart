@@ -3,14 +3,27 @@ import 'dart:convert';
 import 'package:http/http.dart' as http;
 import 'package:url_launcher/url_launcher.dart';
 
-class BroadcastsPage extends StatelessWidget {
-  BroadcastsPage({super.key});
+class BroadcastsPage extends StatefulWidget {
+  const BroadcastsPage({super.key});
 
+  @override
+  State<BroadcastsPage> createState() => _BroadcastsPageState();
+}
+
+class _BroadcastsPageState extends State<BroadcastsPage> {
   final String apiKey = 'AIzaSyC7SgfsXWy-MGe78rrD_40xk9d2sIKg8Fs';
   final List<Map<String, String>> channels = [
     {'id': 'UCWLxarOxx4Aeh959lrV31Lg', 'name': 'Kemo'},
     {'id': 'UCELCPjx3rq0d-G6WfhjwXyA', 'name': 'ShomerTV'},
   ];
+
+  late Future<Map<String, List<dynamic>>> _broadcastsFuture;
+
+  @override
+  void initState() {
+    super.initState();
+    _broadcastsFuture = fetchBroadcasts();
+  }
 
   Future<Map<String, List<dynamic>>> fetchBroadcasts() async {
     Map<String, List<dynamic>> results = {};
@@ -37,19 +50,40 @@ class BroadcastsPage extends StatelessWidget {
     return results;
   }
 
+  void _launchVideo(String videoId) async {
+    final Uri url = Uri.parse('https://www.youtube.com/watch?v=$videoId');
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      debugPrint('Could not launch $url');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Трансляции')),
+      appBar: AppBar(
+        title: const Text('Трансляции'),
+        backgroundColor: Colors.blueAccent,
+      ),
       body: FutureBuilder<Map<String, List<dynamic>>>(
-        future: fetchBroadcasts(),
+        future: _broadcastsFuture,
         builder: (context, snapshot) {
           if (snapshot.connectionState == ConnectionState.waiting) {
             return const Center(child: CircularProgressIndicator());
           } else if (snapshot.hasError) {
-            return const Center(child: Text('Ошибка загрузки данных'));
+            return Center(
+              child: Text(
+                'Ошибка загрузки данных: ${snapshot.error}',
+                style: const TextStyle(color: Colors.red),
+              ),
+            );
           } else {
             final broadcastsByChannel = snapshot.data ?? {};
+
+            if (broadcastsByChannel.isEmpty) {
+              return const Center(
+                child: Text('Нет доступных трансляций', style: TextStyle(fontSize: 18)),
+              );
+            }
 
             return ListView.builder(
               itemCount: channels.length,
@@ -60,54 +94,55 @@ class BroadcastsPage extends StatelessWidget {
                 return Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Padding(
+                    Container(
+                      width: double.infinity,
+                      color: Colors.blueAccent,
                       padding: const EdgeInsets.all(10.0),
                       child: Text(
                         'Канал: $channelName',
-                        style: const TextStyle(
-                            fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
                       ),
                     ),
                     broadcasts.isEmpty
                         ? const Padding(
-                            padding: EdgeInsets.symmetric(horizontal: 10.0),
+                            padding: EdgeInsets.all(16.0),
                             child: Text(
-                              'На данный момент на этом канале не идёт трансляция.',
-                              style: TextStyle(fontSize: 16, color: Colors.white),
+                              'На данный момент на этом канале нет активных трансляций.',
+                              style: TextStyle(fontSize: 16),
                             ),
                           )
                         : Column(
                             children: broadcasts.map((broadcast) {
                               final title = broadcast['snippet']['title'];
-                              final thumbnailUrl =
-                                  broadcast['snippet']['thumbnails']['high']['url'];
+                              final thumbnailUrl = broadcast['snippet']['thumbnails']['high']['url'];
                               final videoId = broadcast['id']['videoId'];
 
-                              return ListTile(
-                                leading: Image.network(
-                                  thumbnailUrl,
-                                  width: 100,
-                                  height: 60,
-                                  fit: BoxFit.cover,
-                                  loadingBuilder: (context, child, progress) {
-                                    if (progress == null) return child;
-                                    return const SizedBox(
-                                      width: 100,
-                                      height: 60,
-                                      child: Center(
-                                        child: CircularProgressIndicator(
-                                          strokeWidth: 2,
+                              return Card(
+                                margin: const EdgeInsets.all(10.0),
+                                child: ListTile(
+                                  leading: Image.network(
+                                    thumbnailUrl,
+                                    width: 100,
+                                    height: 60,
+                                    fit: BoxFit.cover,
+                                    loadingBuilder: (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return const SizedBox(
+                                        width: 100,
+                                        height: 60,
+                                        child: Center(
+                                          child: CircularProgressIndicator(strokeWidth: 2),
                                         ),
-                                      ),
-                                    );
-                                  },
+                                      );
+                                    },
+                                  ),
+                                  title: Text(title, style: const TextStyle(fontSize: 16)),
+                                  onTap: () => _launchVideo(videoId),
                                 ),
-                                title: Text(title, style: const TextStyle(color: Colors.white)),
-                                onTap: () => _launchVideo(videoId),
                               );
                             }).toList(),
                           ),
-                    const Divider(color: Colors.white),
+                    const Divider(height: 2, color: Colors.grey),
                   ],
                 );
               },
@@ -115,14 +150,7 @@ class BroadcastsPage extends StatelessWidget {
           }
         },
       ),
-      backgroundColor: Colors.black,
+      backgroundColor: Colors.grey[900],
     );
-  }
-
-  void _launchVideo(String videoId) async {
-    final Uri url = Uri.parse('https://www.youtube.com/watch?v=$videoId');
-    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
-      debugPrint('Could not launch $url');
-    }
   }
 }

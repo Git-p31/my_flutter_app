@@ -1,152 +1,209 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
-import 'database_helper.dart';
+import '../database_helper.dart';
 
-class AdminPanel extends StatefulWidget {
-  const AdminPanel({super.key});
+class AdminDashboard extends StatefulWidget {
+  const AdminDashboard({super.key});
 
   @override
-  State<AdminPanel> createState() => _AdminPanelState();
+  State<AdminDashboard> createState() => _AdminDashboardState();
 }
 
-class _AdminPanelState extends State<AdminPanel> {
+class _AdminDashboardState extends State<AdminDashboard> {
   final _formKey = GlobalKey<FormState>();
   final TextEditingController _titleController = TextEditingController();
-  final TextEditingController _contentController = TextEditingController();
-  bool _isLoading = false;
-  String _selectedCategory = 'news';
-  File? _selectedImage;
+  final TextEditingController _descriptionController = TextEditingController();
+  File? _imageFile;
+  bool _isProcessing = false;
+  String _currentAction = '';
 
-  // Функция для выбора изображения
-  Future<void> _pickImage() async {
-    final pickedFile = await ImagePicker().pickImage(source: ImageSource.gallery);
+  // Выбор изображения из галереи
+  Future<void> _selectImage() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+
     if (pickedFile != null) {
       setState(() {
-        _selectedImage = File(pickedFile.path);
+        _imageFile = File(pickedFile.path);
       });
     }
   }
 
-  void _addEntry() async {
+  // Отправка новости
+  Future<void> _submitNews() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = true;
+        _isProcessing = true;
       });
 
-      if (_selectedCategory == 'news') {
+      try {
         await DatabaseHelper.instance.insertNews(
           _titleController.text,
-          _contentController.text,
+          _descriptionController.text,
         );
-      } else if (_selectedCategory == 'event') {
-        await DatabaseHelper.instance.insertEvent(
-          _titleController.text,
-          _contentController.text,
-          _selectedImage?.path ?? '',
-        );
+
+        _resetForm();
+        _showMessage('Новость успешно добавлена!');
+      } catch (e) {
+        _showMessage('Ошибка: $e');
+      } finally {
+        setState(() {
+          _isProcessing = false;
+        });
       }
+    }
+  }
 
-      if (!mounted) return;
-
+  // Отправка события
+  Future<void> _submitEvent() async {
+    if (_formKey.currentState!.validate()) {
       setState(() {
-        _isLoading = false;
-        _titleController.clear();
-        _contentController.clear();
-        _selectedImage = null;
+        _isProcessing = true;
       });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(_selectedCategory == 'news' ? 'Новость добавлена!' : 'Событие добавлено!')),
-      );
+      try {
+        await DatabaseHelper.instance.insertEvent(
+          _titleController.text,
+          _descriptionController.text,
+          _imageFile?.path ?? '',
+        );
+
+        _resetForm();
+        _showMessage('Событие успешно добавлено!');
+      } catch (e) {
+        _showMessage('Ошибка: $e');
+      } finally {
+        setState(() {
+          _isProcessing = false;
+        });
+      }
     }
+  }
+
+  // Сброс формы
+  void _resetForm() {
+    setState(() {
+      _titleController.clear();
+      _descriptionController.clear();
+      _imageFile = null;
+      _currentAction = '';
+    });
+  }
+
+  // Показ сообщения
+  void _showMessage(String message) {
+    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+  }
+
+  // Отображение списка пользователей
+  void _displayUserList() async {
+  try {
+    List<Map<String, dynamic>> users = await DatabaseHelper.instance.getUsers();
+
+    if (!mounted) return; // Проверка, что виджет всё ещё в дереве
+
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Список пользователей'),
+        content: SingleChildScrollView(
+          child: Column(
+            children: users.map((user) => ListTile(
+              title: Text(user['name']),
+              subtitle: Text(user['email']),
+            )).toList(),
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Закрыть'),
+          ),
+        ],
+      ),
+    );
+  } catch (e) {
+    if (!mounted) return; // Проверка перед вызовом `_showMessage`
+    _showMessage('Ошибка загрузки пользователей: $e');
+  }
+}
+
+  // Установка текущего действия
+  void _setAction(String action) {
+    setState(() {
+      _currentAction = action;
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Админ-панель'),
-        backgroundColor: Colors.blue,
-      ),
+      appBar: AppBar(title: const Text('Админ-панель')),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
-        child: Form(
-          key: _formKey,
-          child: ListView(
+        child: SingleChildScrollView(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              DropdownButtonFormField<String>(
-                value: _selectedCategory,
-                decoration: const InputDecoration(
-                  labelText: 'Категория',
-                  border: OutlineInputBorder(),
-                ),
-                items: const [
-                  DropdownMenuItem(value: 'news', child: Text('Новость')),
-                  DropdownMenuItem(value: 'event', child: Text('Событие')),
-                ],
-                onChanged: (value) {
-                  setState(() {
-                    _selectedCategory = value!;
-                    _selectedImage = null; // Сбрасываем изображение при смене категории
-                  });
-                },
+              ElevatedButton(
+                onPressed: _displayUserList,
+                child: const Text('Просмотреть пользователей'),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _titleController,
-                decoration: const InputDecoration(
-                  labelText: 'Заголовок',
-                  border: OutlineInputBorder(),
-                ),
-                validator: (value) => value == null || value.isEmpty ? 'Введите заголовок' : null,
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => _setAction('news'),
+                child: const Text('Создать новость'),
               ),
-              const SizedBox(height: 16),
-              TextFormField(
-                controller: _contentController,
-                decoration: const InputDecoration(
-                  labelText: 'Содержание',
-                  border: OutlineInputBorder(),
-                ),
-                maxLines: 4,
-                validator: (value) => value == null || value.isEmpty ? 'Введите содержание' : null,
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: () => _setAction('event'),
+                child: const Text('Создать событие'),
               ),
-              const SizedBox(height: 16),
-              if (_selectedCategory == 'event') ...[
-                ElevatedButton.icon(
-                  onPressed: _pickImage,
-                  icon: const Icon(Icons.image),
-                  label: const Text('Выбрать изображение'),
-                ),
-                const SizedBox(height: 16),
-                _selectedImage != null
-                    ? Image.file(_selectedImage!, height: 150, fit: BoxFit.cover)
-                    : const SizedBox(),
-                const SizedBox(height: 16),
-              ],
-              _isLoading
-                  ? const Center(child: CircularProgressIndicator())
-                  : ElevatedButton.icon(
-                      onPressed: _addEntry,
-                      icon: const Icon(Icons.add),
-                      label: const Text('Добавить'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: Colors.blue,
-                        foregroundColor: Colors.white,
-                        minimumSize: const Size(double.infinity, 50),
+              const SizedBox(height: 20),
+              if (_currentAction == 'news' || _currentAction == 'event')
+                Form(
+                  key: _formKey,
+                  child: Column(
+                    children: [
+                      TextFormField(
+                        controller: _titleController,
+                        decoration: const InputDecoration(labelText: 'Название'),
+                        validator: (value) => value!.isEmpty ? 'Название обязательно' : null,
                       ),
-                    ),
+                      const SizedBox(height: 10),
+                      TextFormField(
+                        controller: _descriptionController,
+                        decoration: const InputDecoration(labelText: 'Описание'),
+                        maxLines: 3,
+                        validator: (value) => value!.isEmpty ? 'Описание обязательно' : null,
+                      ),
+                      const SizedBox(height: 20),
+                      if (_currentAction == 'event') ...[
+                        ElevatedButton.icon(
+                          onPressed: _selectImage,
+                          icon: const Icon(Icons.image),
+                          label: const Text('Выбрать изображение'),
+                        ),
+                        const SizedBox(height: 10),
+                        _imageFile != null
+                            ? Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
+                            : const Text('Изображение не выбрано', textAlign: TextAlign.center),
+                        const SizedBox(height: 20),
+                      ],
+                      _isProcessing
+                          ? const CircularProgressIndicator()
+                          : ElevatedButton(
+                              onPressed: _currentAction == 'news' ? _submitNews : _submitEvent,
+                              child: Text(_currentAction == 'news' ? 'Добавить новость' : 'Добавить событие'),
+                            ),
+                    ],
+                  ),
+                ),
             ],
           ),
         ),
       ),
     );
-  }
-
-  @override
-  void dispose() {
-    _titleController.dispose();
-    _contentController.dispose();
-    super.dispose();
   }
 }
