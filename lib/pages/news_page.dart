@@ -24,6 +24,11 @@ class _NewsPageState extends State<NewsPage> {
     });
   }
 
+  Future<void> _deleteNews(int id) async {
+    await DatabaseHelper.instance.deleteNewsById(id);
+    _loadNews(); // Перезагружаем список после удаления
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -46,9 +51,9 @@ class _NewsPageState extends State<NewsPage> {
                   child: ListTile(
                     title: Text(newsItem['title'], style: const TextStyle(color: Colors.blue)),
                     subtitle: Text(newsItem['content'], style: const TextStyle(color: Colors.white70)),
-                    trailing: Text(
-                      newsItem['timestamp'],
-                      style: const TextStyle(color: Colors.white54),
+                    trailing: IconButton(
+                      icon: const Icon(Icons.delete, color: Colors.red),
+                      onPressed: () => _deleteNews(newsItem['id']),
                     ),
                   ),
                 );
