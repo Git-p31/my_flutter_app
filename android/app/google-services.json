@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "543037758825",
+    "project_id": "kemo-app-b6072",
+    "storage_bucket": "kemo-app-b6072.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:543037758825:android:6457aba35146b9310571f8",
+        "android_client_info": {
+          "package_name": "com.example.my_flutter_app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "543037758825-ljt57udki6feoh0pi6uco998ovvt3253.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBq50wCIzXYaEmc6e3RS3KhUDEzvgbygcA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "543037758825-ljt57udki6feoh0pi6uco998ovvt3253.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

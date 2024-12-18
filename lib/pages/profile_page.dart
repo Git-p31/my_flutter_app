@@ -18,6 +18,9 @@ class ProfilePage extends StatelessWidget {
     this.userRole = 'user',
   });
 
+  // ID пользователя, для которого должна показываться кнопка админ-панели
+  static const String adminUserId = 'qmlqEh6TGjWFTIhu4YLK';
+
   Future<void> _openAdminPanel(BuildContext context) async {
     Navigator.push(
       context,
@@ -64,7 +67,7 @@ class ProfilePage extends StatelessWidget {
   void _navigateToNewsPage(BuildContext context) {
     Navigator.pushReplacement(
       context,
-      MaterialPageRoute(builder: (context) => const NewsPage()), // Переход на NewsPage
+      MaterialPageRoute(builder: (context) => const NewsPage()),
     );
   }
 
@@ -75,7 +78,7 @@ class ProfilePage extends StatelessWidget {
         title: const Text('Профиль'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => _navigateToNewsPage(context), // Переход на NewsPage
+          onPressed: () => _navigateToNewsPage(context),
         ),
         actions: [
           IconButton(
@@ -116,7 +119,8 @@ class ProfilePage extends StatelessWidget {
               leading: const Icon(Icons.perm_identity),
               title: Text('ID: $userId', style: const TextStyle(fontSize: 18)),
             ),
-            if (userId == '1' || userRole == 'admin')
+            // Условие для отображения кнопки админ панели
+            if (userId == adminUserId)
               Padding(
                 padding: const EdgeInsets.only(top: 30.0),
                 child: Center(
@@ -133,3 +137,4 @@ class ProfilePage extends StatelessWidget {
     );
   }
 }
+

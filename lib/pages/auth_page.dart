@@ -19,55 +19,45 @@ class _AuthPageState extends State<AuthPage> {
   String _password = '';
   bool _isLogin = true;
 
-void _submitForm() async {
-  if (!_formKey.currentState!.validate()) return;
-  _formKey.currentState!.save();
+  void _submitForm() async {
+    if (!_formKey.currentState!.validate()) return;
+    _formKey.currentState!.save();
 
-  setState(() => _isLoading = true);
+    setState(() => _isLoading = true);
 
-  try {
-    if (_isLogin) {
-      final user = await DatabaseHelper.instance.loginUser(_username, _password);
-      if (user != null && user['id'] != null) {
-        if (!mounted) return; // Проверка перед использованием BuildContext
-        await _saveLoginState(user['id'].toString(), user['username'], user['email'], user['role']);
-        if (mounted) {
-          Navigator.pushReplacement(
-            context,
-            MaterialPageRoute(
-              builder: (context) => ProfilePage(
-                userId: user['id'].toString(),
-                userName: user['username'],
-                userEmail: user['email'],
-                userRole: user['role'],
+    try {
+      if (_isLogin) {
+        final user = await DatabaseHelper.instance.loginUser(_username, _password);
+        if (user != null && user['id'] != null) {
+          await _saveLoginState(user['id'].toString(), user['username'], user['email'], user['role']);
+          if (mounted) {
+            Navigator.pushReplacement(
+              context,
+              MaterialPageRoute(
+                builder: (context) => ProfilePage(
+                  userId: user['id'].toString(),
+                  userName: user['username'],
+                  userEmail: user['email'],
+                  userRole: user['role'],
+                ),
               ),
-            ),
-          );
-        }
-      } else {
-        if (mounted) {
+            );
+          }
+        } else {
           _showSnackbar('Неверные данные для входа или пользователь не найден');
         }
-      }
-    } else {
-      await DatabaseHelper.instance.registerUser(_username, _email, _password);
-      await _saveLoginState('0', _username, _email, 'user');
-      if (mounted) {
+      } else {
+        await DatabaseHelper.instance.registerUser(_username, _email, _password);
+        await _saveLoginState('0', _username, _email, 'user');
         _showSnackbar('Регистрация успешна. Теперь вы можете войти.');
         setState(() => _isLogin = true);
       }
-    }
-  } catch (e) {
-    if (mounted) {
+    } catch (e) {
       _showSnackbar('Ошибка: $e');
-    }
-  } finally {
-    if (mounted) {
+    } finally {
       setState(() => _isLoading = false);
     }
   }
-}
-
 
   Future<void> _saveLoginState(String id, String username, String email, String role) async {
     final prefs = await SharedPreferences.getInstance();

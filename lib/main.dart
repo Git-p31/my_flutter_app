@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'firebase_options.dart';
 import 'pages/broadcasts_page.dart';
 import 'pages/charity_page.dart';
 import 'pages/events_page.dart';
@@ -9,8 +11,35 @@ import 'pages/profile_page.dart';
 import 'pages/auth_page.dart';
 import 'pages/settings_page.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    runApp(const MyApp());
+  } catch (e) {
+    runApp(ErrorApp(message: 'Ошибка инициализации Firebase: $e'));
+  }
+}
+
+class ErrorApp extends StatelessWidget {
+  final String message;
+  const ErrorApp({super.key, required this.message});
+
+  @override
+  Widget build(BuildContext context) {
+    return MaterialApp(
+      home: Scaffold(
+        body: Center(
+          child: Text(
+            message,
+            style: const TextStyle(color: Colors.red, fontSize: 18),
+          ),
+        ),
+      ),
+    );
+  }
 }
 
 class MyApp extends StatefulWidget {
@@ -120,41 +149,40 @@ class _HomePageState extends State<HomePage> {
     Navigator.pop(context);
   }
 
-void _openProfile() async {
-  final prefs = await SharedPreferences.getInstance();
-  final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
+  void _openProfile() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
 
-  if (!mounted) return; // Проверка перед использованием BuildContext
+    if (!mounted) return;
 
-  if (isLoggedIn) {
-    final userId = prefs.getString('id') ?? 'Неизвестный ID';
-    final userName = prefs.getString('username') ?? 'Пользователь';
-    final userEmail = prefs.getString('email') ?? 'user@example.com';
-    final userRole = prefs.getString('role') ?? 'user';
+    if (isLoggedIn) {
+      final userId = prefs.getString('id') ?? 'Неизвестный ID';
+      final userName = prefs.getString('username') ?? 'Пользователь';
+      final userEmail = prefs.getString('email') ?? 'user@example.com';
+      final userRole = prefs.getString('role') ?? 'user';
 
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => ProfilePage(
-            userId: userId,
-            userName: userName,
-            userEmail: userEmail,
-            userRole: userRole,
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ProfilePage(
+              userId: userId,
+              userName: userName,
+              userEmail: userEmail,
+              userRole: userRole,
+            ),
           ),
-        ),
-      );
-    }
-  } else {
-    if (mounted) {
-      Navigator.push(
-        context,
-        MaterialPageRoute(builder: (context) => const AuthPage()),
-      );
+        );
+      }
+    } else {
+      if (mounted) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const AuthPage()),
+        );
+      }
     }
   }
-}
-
 
   void _openSettings() {
     showModalBottomSheet(

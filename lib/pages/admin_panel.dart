@@ -63,10 +63,16 @@ class _AdminDashboardState extends State<AdminDashboard> {
       });
 
       try {
+        String imageUrl = '';
+        if (_imageFile != null) {
+          // Загрузить изображение в Firebase Storage и получить URL (заглушка)
+          imageUrl = _imageFile!.path;
+        }
+
         await DatabaseHelper.instance.insertEvent(
           _titleController.text,
           _descriptionController.text,
-          _imageFile?.path ?? '',
+          imageUrl,
         );
 
         _resetForm();
@@ -98,36 +104,36 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // Отображение списка пользователей
   void _displayUserList() async {
-  try {
-    List<Map<String, dynamic>> users = await DatabaseHelper.instance.getUsers();
+    try {
+      List<Map<String, dynamic>> users = await DatabaseHelper.instance.getUsers();
 
-    if (!mounted) return; // Проверка, что виджет всё ещё в дереве
+      if (!mounted) return;
 
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Список пользователей'),
-        content: SingleChildScrollView(
-          child: Column(
-            children: users.map((user) => ListTile(
-              title: Text(user['name']),
-              subtitle: Text(user['email']),
-            )).toList(),
+      showDialog(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          title: const Text('Список пользователей'),
+          content: SingleChildScrollView(
+            child: Column(
+              children: users.map((user) => ListTile(
+                title: Text(user['username'] ?? 'Без имени'),
+                subtitle: Text(user['email'] ?? 'Без email'),
+              )).toList(),
+            ),
           ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: const Text('Закрыть'),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Закрыть'),
-          ),
-        ],
-      ),
-    );
-  } catch (e) {
-    if (!mounted) return; // Проверка перед вызовом `_showMessage`
-    _showMessage('Ошибка загрузки пользователей: $e');
+      );
+    } catch (e) {
+      if (!mounted) return;
+      _showMessage('Ошибка загрузки пользователей: $e');
+    }
   }
-}
 
   // Установка текущего действия
   void _setAction(String action) {

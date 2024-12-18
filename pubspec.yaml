@@ -21,11 +21,14 @@ dependencies:
   csv: ^5.0.2             # Для экспорта данных в CSV формат
   shared_preferences: ^2.2.2
   intl: ^0.19.0
-  image_picker: ^1.0.4 # Проверьте последнюю версию на pub.dev
-  
+  image_picker: ^0.8.6+1  # Обновление для совместимости с последними версиями
+  cached_network_image: ^3.3.1  # Последняя версия на момент написания
+
   # Firebase dependencies
   cloud_firestore: ^4.8.0 # Актуальная версия для Firestore
   firebase_core: ^2.24.2  # Актуальная версия для инициализации Firebase
+  firebase_auth: ^4.0.0
+  firebase_auth_web: ^5.8.13 # Обновление до последней версии, совместимой с Firebase
 
   # Логирование
   logger: ^2.0.2          # Логирование для отладки

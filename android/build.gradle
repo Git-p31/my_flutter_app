@@ -1,3 +1,14 @@
+buildscript {
+    repositories {
+        google()
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:8.1.0'          // Проверьте последнюю версию Gradle
+        classpath 'com.google.gms:google-services:4.3.15'         // Поддержка Firebase
+    }
+}
+
 allprojects {
     repositories {
         google()
@@ -16,4 +27,3 @@ subprojects {
 tasks.register("clean", Delete) {
     delete rootProject.buildDir
 }
-

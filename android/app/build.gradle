@@ -3,16 +3,18 @@ plugins {
     id "kotlin-android"
     // Плагин Flutter должен идти после плагинов Android и Kotlin
     id "dev.flutter.flutter-gradle-plugin"
+    id "com.google.gms.google-services" // Плагин для Firebase
 }
 
 android {
-    namespace = "com.example.my_flutter_app"
-    compileSdk = flutter.compileSdkVersion
-    ndkVersion = flutter.ndkVersion
+    namespace "com.example.my_flutter_app"    // Пространство имён вашего приложения
+    compileSdk flutter.compileSdkVersion      // Использование версии SDK из Flutter
+
+    ndkVersion flutter.ndkVersion             // Использование версии NDK из Flutter
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_17
-        targetCompatibility = JavaVersion.VERSION_17
+        sourceCompatibility JavaVersion.VERSION_17
+        targetCompatibility JavaVersion.VERSION_17
     }
 
     kotlinOptions {
@@ -20,16 +22,20 @@ android {
     }
 
     defaultConfig {
-        applicationId = "com.example.my_flutter_app"
-        minSdk = flutter.minSdkVersion
-        targetSdk = flutter.targetSdkVersion
-        versionCode = flutter.versionCode
-        versionName = flutter.versionName
+        applicationId "com.example.my_flutter_app"   // Убедитесь, что это ваш пакетный идентификатор
+        minSdk flutter.minSdkVersion                 // Использование minSdk из Flutter
+        targetSdk flutter.targetSdkVersion           // Использование targetSdk из Flutter
+        versionCode flutter.versionCode              // Использование versionCode из Flutter
+        versionName flutter.versionName              // Использование versionName из Flutter
     }
 
     buildTypes {
+        debug {
+            signingConfig signingConfigs.debug
+            minifyEnabled false
+        }
         release {
-            signingConfig = signingConfigs.debug
+            signingConfig signingConfigs.debug
             // Включение R8 для оптимизации и уменьшения размера APK
             minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
@@ -38,5 +44,11 @@ android {
 }
 
 flutter {
-    source = "../.."
+    source "../.."
+}
+
+dependencies {
+    implementation 'com.google.firebase:firebase-analytics:21.4.0'   // Пример зависимости Firebase Analytics
+    implementation 'com.google.firebase:firebase-auth:22.3.1'        // Пример зависимости Firebase Auth
+    implementation 'com.google.firebase:firebase-firestore:24.11.0'  // Пример зависимости Firestore
 }
