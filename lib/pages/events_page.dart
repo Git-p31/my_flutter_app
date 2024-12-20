@@ -3,7 +3,9 @@ import 'package:cached_network_image/cached_network_image.dart';
 import '../database_helper.dart';
 
 class EventsPage extends StatefulWidget {
-  const EventsPage({super.key});
+  final String userRole; // Роль пользователя
+
+  const EventsPage({super.key, required this.userRole});
 
   @override
   State<EventsPage> createState() => _EventsPageState();
@@ -99,10 +101,11 @@ class _EventsPageState extends State<EventsPage> {
                                 errorWidget: (context, url, error) =>
                                     const Icon(Icons.error, color: Colors.red),
                               ),
-                            IconButton(
-                              icon: const Icon(Icons.delete, color: Colors.red),
-                              onPressed: () => _deleteEvent(docId),
-                            ),
+                            if (widget.userRole == 'admin')
+                              IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteEvent(docId),
+                              ),
                           ],
                         ),
                       ),

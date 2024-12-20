@@ -2,7 +2,9 @@ import 'package:flutter/material.dart';
 import '../database_helper.dart';
 
 class NewsPage extends StatefulWidget {
-  const NewsPage({super.key});
+  final String userRole; // Роль пользователя
+
+  const NewsPage({super.key, required this.userRole});
 
   @override
   State<NewsPage> createState() => _NewsPageState();
@@ -78,10 +80,12 @@ class _NewsPageState extends State<NewsPage> {
                             style: const TextStyle(color: Colors.blue)),
                         subtitle: Text(newsItem['content'] ?? 'Нет содержания',
                             style: const TextStyle(color: Colors.white70)),
-                        trailing: IconButton(
-                          icon: const Icon(Icons.delete, color: Colors.red),
-                          onPressed: () => _deleteNews(newsItem['id']),
-                        ),
+                        trailing: widget.userRole == 'admin'
+                            ? IconButton(
+                                icon: const Icon(Icons.delete, color: Colors.red),
+                                onPressed: () => _deleteNews(newsItem['id']),
+                              )
+                            : null,
                       ),
                     );
                   },

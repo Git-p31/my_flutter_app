@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'admin_panel.dart';
-import 'news_page.dart'; // Импорт NewsPage
 import 'auth_page.dart';
 
 class ProfilePage extends StatelessWidget {
@@ -64,13 +63,6 @@ class ProfilePage extends StatelessWidget {
     );
   }
 
-  void _navigateToNewsPage(BuildContext context) {
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(builder: (context) => const NewsPage()),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -78,7 +70,8 @@ class ProfilePage extends StatelessWidget {
         title: const Text('Профиль'),
         leading: IconButton(
           icon: const Icon(Icons.arrow_back),
-          onPressed: () => _navigateToNewsPage(context),
+          // Используем Navigator.pop для возврата на предыдущий экран
+          onPressed: () => Navigator.pop(context),
         ),
         actions: [
           IconButton(
@@ -137,4 +130,3 @@ class ProfilePage extends StatelessWidget {
     );
   }
 }
-

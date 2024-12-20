@@ -175,6 +175,17 @@ class DatabaseHelper {
     }
   }
 
+  // Удаление пользователя по ID
+  Future<void> deleteUserById(String userId) async {
+    try {
+      await _firestore.collection('users').doc(userId).delete();
+      _logger.i('User with ID $userId deleted');
+    } catch (e) {
+      _logger.e('Error deleting user', error: e);
+      rethrow;
+    }
+  }
+
   // ------------------- Вспомогательные методы -------------------
 
   String _hashPassword(String password) {

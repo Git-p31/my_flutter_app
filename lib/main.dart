@@ -30,6 +30,11 @@ class ErrorApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        primaryColor: Colors.blue,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
+      ),
       home: Scaffold(
         body: Center(
           child: Text(
@@ -87,7 +92,17 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'My Flutter App',
-      theme: _isDarkTheme ? ThemeData.dark() : ThemeData.light(),
+      theme: ThemeData.dark().copyWith(
+        scaffoldBackgroundColor: Colors.black,
+        primaryColor: Colors.blue,
+        appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
+        iconTheme: const IconThemeData(color: Colors.blue),
+        textTheme: const TextTheme(
+          bodyLarge: TextStyle(color: Colors.white),
+          bodyMedium: TextStyle(color: Colors.white),
+          titleLarge: TextStyle(color: Colors.blue),
+        ),
+      ),
       home: HomePage(
         onToggleTheme: _toggleTheme,
         onToggleNotifications: _toggleNotifications,
@@ -119,6 +134,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
+  String _userRole = 'user';
 
   final List<String> _titles = [
     'Новости',
@@ -128,18 +144,26 @@ class _HomePageState extends State<HomePage> {
     'Цдака',
   ];
 
-  late final List<Widget> _pages;
+  late List<Widget> _pages;
 
   @override
   void initState() {
     super.initState();
-    _pages = [
-      const NewsPage(),
-      const EventsPage(),
-      const BroadcastsPage(),
-      const WorkshopsPage(),
-      const CharityPage(),
-    ];
+    _loadUserRole();
+  }
+
+  Future<void> _loadUserRole() async {
+    final prefs = await SharedPreferences.getInstance();
+    setState(() {
+      _userRole = prefs.getString('role') ?? 'user';
+      _pages = [
+        NewsPage(userRole: _userRole),
+        EventsPage(userRole: _userRole),
+        const BroadcastsPage(),
+        const WorkshopsPage(),
+        const CharityPage(),
+      ];
+    });
   }
 
   void _onItemTapped(int index) {
@@ -214,10 +238,12 @@ class _HomePageState extends State<HomePage> {
           ),
         ],
       ),
-      body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
+      body: _pages.isEmpty
+          ? const Center(child: CircularProgressIndicator())
+          : IndexedStack(
+              index: _selectedIndex,
+              children: _pages,
+            ),
       drawer: Drawer(
         child: ListView(
           padding: EdgeInsets.zero,
@@ -229,14 +255,7 @@ class _HomePageState extends State<HomePage> {
                 style: TextStyle(color: Colors.white, fontSize: 24),
               ),
             ),
-            ListTile(
-              leading: const Icon(Icons.account_circle),
-              title: const Text('Профиль'),
-              onTap: () {
-                Navigator.pop(context);
-                _openProfile();
-              },
-            ),
+            _buildDrawerItem(Icons.account_circle, 'Профиль', _openProfile),
             _buildDrawerItem(Icons.article, 'Новости', 0),
             _buildDrawerItem(Icons.event, 'События', 1),
             _buildDrawerItem(Icons.live_tv, 'Трансляции', 2),
@@ -248,12 +267,18 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildDrawerItem(IconData icon, String title, int index) {
+  Widget _buildDrawerItem(IconData icon, String title, dynamic action) {
     return ListTile(
-      leading: Icon(icon),
+      leading: Icon(icon, color: Colors.blue),
       title: Text(title),
-      selected: _selectedIndex == index,
-      onTap: () => _onItemTapped(index),
+      selected: action is int ? _selectedIndex == action : false,
+      onTap: () {
+        if (action is int) {
+          _onItemTapped(action);
+        } else if (action is Function) {
+          action();
+        }
+      },
     );
   }
 }

@@ -23,7 +23,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
 
-    if (pickedFile != null) {
+    if (pickedFile != null && mounted) {
       setState(() {
         _imageFile = File(pickedFile.path);
       });
@@ -43,14 +43,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
           _descriptionController.text,
         );
 
-        _resetForm();
-        _showMessage('Новость успешно добавлена!');
+        if (mounted) {
+          _resetForm();
+          _showMessage('Новость успешно добавлена!');
+        }
       } catch (e) {
-        _showMessage('Ошибка: $e');
+        if (mounted) {
+          _showMessage('Ошибка: $e');
+        }
       } finally {
-        setState(() {
-          _isProcessing = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
       }
     }
   }
@@ -65,8 +71,7 @@ class _AdminDashboardState extends State<AdminDashboard> {
       try {
         String imageUrl = '';
         if (_imageFile != null) {
-          // Загрузить изображение в Firebase Storage и получить URL (заглушка)
-          imageUrl = _imageFile!.path;
+          imageUrl = _imageFile!.path; // Заглушка для загрузки изображения
         }
 
         await DatabaseHelper.instance.insertEvent(
@@ -75,14 +80,20 @@ class _AdminDashboardState extends State<AdminDashboard> {
           imageUrl,
         );
 
-        _resetForm();
-        _showMessage('Событие успешно добавлено!');
+        if (mounted) {
+          _resetForm();
+          _showMessage('Событие успешно добавлено!');
+        }
       } catch (e) {
-        _showMessage('Ошибка: $e');
+        if (mounted) {
+          _showMessage('Ошибка: $e');
+        }
       } finally {
-        setState(() {
-          _isProcessing = false;
-        });
+        if (mounted) {
+          setState(() {
+            _isProcessing = false;
+          });
+        }
       }
     }
   }
@@ -99,7 +110,49 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
   // Показ сообщения
   void _showMessage(String message) {
-    ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    if (mounted) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    }
+  }
+
+  // Удаление пользователя
+  Future<void> _deleteUser(String userId) async {
+    try {
+      await DatabaseHelper.instance.deleteUserById(userId);
+
+      if (mounted) {
+        _showMessage('Пользователь удалён');
+        Navigator.pop(context); // Закрыть диалог со списком пользователей
+      }
+    } catch (e) {
+      if (mounted) {
+        _showMessage('Ошибка при удалении пользователя: $e');
+      }
+    }
+  }
+
+  // Подтверждение удаления пользователя
+  void _confirmDeleteUser(String userId) {
+    showDialog(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Удалить пользователя'),
+        content: const Text('Вы уверены, что хотите удалить этого пользователя?'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Отмена'),
+          ),
+          ElevatedButton(
+            onPressed: () {
+              Navigator.pop(ctx); // Закрыть диалог подтверждения
+              _deleteUser(userId);
+            },
+            child: const Text('Удалить'),
+          ),
+        ],
+      ),
+    );
   }
 
   // Отображение списка пользователей
@@ -118,6 +171,10 @@ class _AdminDashboardState extends State<AdminDashboard> {
               children: users.map((user) => ListTile(
                 title: Text(user['username'] ?? 'Без имени'),
                 subtitle: Text(user['email'] ?? 'Без email'),
+                trailing: IconButton(
+                  icon: const Icon(Icons.delete, color: Colors.red),
+                  onPressed: () => _confirmDeleteUser(user['id']),
+                ),
               )).toList(),
             ),
           ),
@@ -130,8 +187,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
         ),
       );
     } catch (e) {
-      if (!mounted) return;
-      _showMessage('Ошибка загрузки пользователей: $e');
+      if (mounted) {
+        _showMessage('Ошибка загрузки пользователей: $e');
+      }
     }
   }
 
