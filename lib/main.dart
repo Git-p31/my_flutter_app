@@ -10,6 +10,7 @@ import 'pages/workshops_page.dart';
 import 'pages/profile_page.dart';
 import 'pages/auth_page.dart';
 import 'pages/settings_page.dart';
+import 'pages/cards_page.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -142,9 +143,10 @@ class _HomePageState extends State<HomePage> {
     'Трансляции',
     'Воркшопы',
     'Цдака',
+    'Проекты',
   ];
 
-  late List<Widget> _pages;
+  List<Widget> _pages = [];
 
   @override
   void initState() {
@@ -162,6 +164,7 @@ class _HomePageState extends State<HomePage> {
         const BroadcastsPage(),
         const WorkshopsPage(),
         const CharityPage(),
+        if (_userRole == 'admin') const CardsPage(), // Страница «Проекты» только для админов
       ];
     });
   }
@@ -185,26 +188,22 @@ class _HomePageState extends State<HomePage> {
       final userEmail = prefs.getString('email') ?? 'user@example.com';
       final userRole = prefs.getString('role') ?? 'user';
 
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => ProfilePage(
-              userId: userId,
-              userName: userName,
-              userEmail: userEmail,
-              userRole: userRole,
-            ),
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => ProfilePage(
+            userId: userId,
+            userName: userName,
+            userEmail: userEmail,
+            userRole: userRole,
           ),
-        );
-      }
+        ),
+      );
     } else {
-      if (mounted) {
-        Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AuthPage()),
-        );
-      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (context) => const AuthPage()),
+      );
     }
   }
 
@@ -261,6 +260,8 @@ class _HomePageState extends State<HomePage> {
             _buildDrawerItem(Icons.live_tv, 'Трансляции', 2),
             _buildDrawerItem(Icons.work, 'Воркшопы', 3),
             _buildDrawerItem(Icons.volunteer_activism, 'Цдака', 4),
+            if (_userRole == 'admin')
+              _buildDrawerItem(Icons.folder, 'Проекты', 5), // Пункт «Проекты» только для админов
           ],
         ),
       ),
