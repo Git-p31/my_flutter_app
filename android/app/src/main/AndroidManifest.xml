@@ -1,5 +1,5 @@
-<manifest xmlns:android="http://schemas.android.com/apk/res/android"
-    package="com.example.my_flutter_app">
+<manifest xmlns:android="http://schemas.android.com/apk/res/android">
+
 
     <!-- Разрешение для доступа к интернету -->
     <uses-permission android:name="android.permission.INTERNET" />
@@ -8,7 +8,7 @@
 
 
     <application
-        android:label="my_flutter_app"
+        android:label="Kemo_News"
         android:icon="@mipmap/ic_launcher"
         android:theme="@style/NormalTheme">
 

@@ -7,8 +7,8 @@ plugins {
 }
 
 android {
-    namespace "com.example.my_flutter_app"    // Пространство имён вашего приложения
-    compileSdk flutter.compileSdkVersion      // Использование версии SDK из Flutter
+    namespace "com.example.Kemo_news"    // Пространство имён вашего приложения
+    compileSdk 34                              // Явно указываем версию SDK
 
     ndkVersion flutter.ndkVersion             // Использование версии NDK из Flutter
 
@@ -23,10 +23,13 @@ android {
 
     defaultConfig {
         applicationId "com.example.my_flutter_app"   // Убедитесь, что это ваш пакетный идентификатор
-        minSdk flutter.minSdkVersion                 // Использование minSdk из Flutter
-        targetSdk flutter.targetSdkVersion           // Использование targetSdk из Flutter
-        versionCode flutter.versionCode              // Использование versionCode из Flutter
-        versionName flutter.versionName              // Использование versionName из Flutter
+        minSdk 23                                    // Указана минимальная версия SDK
+        targetSdk 34                              // Целевая версия SDK
+        versionCode 1                                // Версия приложения (код)
+        versionName "1.0.0"                          // Версия приложения (имя)
+
+        // Если используете библиотеки, которые требуют изменения Multidex
+        multiDexEnabled true
     }
 
     buildTypes {
@@ -48,7 +51,10 @@ flutter {
 }
 
 dependencies {
-    implementation 'com.google.firebase:firebase-analytics:21.4.0'   // Пример зависимости Firebase Analytics
-    implementation 'com.google.firebase:firebase-auth:22.3.1'        // Пример зависимости Firebase Auth
-    implementation 'com.google.firebase:firebase-firestore:24.11.0'  // Пример зависимости Firestore
+    implementation 'com.google.firebase:firebase-analytics:21.4.0'   // Firebase Analytics
+    implementation 'com.google.firebase:firebase-auth:22.3.1'        // Firebase Auth
+    implementation 'com.google.firebase:firebase-firestore:24.11.0'  // Firebase Firestore
+
+    // Поддержка Multidex, если приложение стало слишком большим
+    implementation 'androidx.multidex:multidex:2.0.1'
 }

@@ -1,41 +1,39 @@
-name: my_flutter_app
+name: kemo_news_app
 
-description: "A new Flutter project."
+description: "An advanced Flutter project with Firebase, SQLite, and multimedia support, tailored for news, events, and projects."
 
 publish_to: 'none' # Remove this line if you plan to publish to pub.dev
 
 version: 1.0.0+1
 
 environment:
-  sdk: '>=3.5.0 <4.0.0' # Updated range for better compatibility
+  sdk: '>=3.5.0 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
 
   # Database dependencies
-  path: ^1.8.3            # Пакет для работы с путями файлов
-  path_provider: ^2.1.2   # Пакет для получения путей к файлам
-  sqflite: ^2.2.8+4       # SQLite для локальной базы данных
-  crypto: ^3.0.3          # Для хеширования данных (например, паролей)
-  csv: ^5.0.2             # Для экспорта данных в CSV формат
-  shared_preferences: ^2.2.2
-  intl: ^0.19.0
-  image_picker: ^0.8.6+1  # Обновление для совместимости с последними версиями
-  cached_network_image: ^3.3.1  # Последняя версия на момент написания
-  video_player: ^2.8.2
-
-
-
+  path: ^1.8.3                  # Работа с файловыми путями
+  path_provider: ^2.1.2         # Доступ к файловой системе
+  sqflite: ^2.2.8+4             # Локальная база данных SQLite
+  crypto: ^3.0.3                # Хеширование данных
+  csv: ^6.0.0                   # Работа с CSV файлами
+  shared_preferences: ^2.2.2    # Локальное хранение данных
+  intl: ^0.20.1                 # Работа с датами и форматированием
+  image_picker: ^1.1.2          # Выбор изображений из галереи/камеры
+  cached_network_image: ^3.3.1  # Кэширование изображений
+  video_player: ^2.8.2          # Воспроизведение видео
+  package_info_plus: ^8.1.2     # Информация о приложении
 
   # Firebase dependencies
-  cloud_firestore: ^4.8.0 # Актуальная версия для Firestore
-  firebase_core: ^2.24.2  # Актуальная версия для инициализации Firebase
-  firebase_auth: ^4.0.0
-  firebase_auth_web: ^5.8.13 # Обновление до последней версии, совместимой с Firebase
+  cloud_firestore: ^5.6.0       # Firebase Firestore
+  firebase_core: ^3.9.0         # Firebase инициализация
+  firebase_auth: ^5.3.4         # Firebase аутентификация
+  firebase_messaging: ^15.1.6   # Уведомления Firebase
 
   # Логирование
-  logger: ^2.0.2          # Логирование для отладки
+  logger: ^2.0.2                # Логирование для отладки
 
   # WebView для отображения веб-контента
   webview_flutter: ^4.10.0
@@ -50,16 +48,25 @@ dependencies:
   url_launcher: ^6.3.0
 
   # Управление состоянием
-  provider: ^6.1.2        # Обновлённая версия для совместимости
+  provider: ^6.1.2              # Управление состоянием
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
+  flutter_launcher_icons: ^0.13.1
 
-  # Анализ кода для Flutter
-  flutter_lints: ^3.0.0
+  # Анализатор кода для Flutter
+  flutter_lints: ^5.0.0
 
 flutter:
   uses-material-design: true
-assets:
+
+  # Подключение мультимедиа
+  assets:
     - assets/splash_video.mp4
+    
+flutter_launcher_icons:
+  android: true
+  ios: true
+  image_path: "assets/icon/app_icon.png" # Укажите путь к вашему изображению
+  remove_alpha_ios: true

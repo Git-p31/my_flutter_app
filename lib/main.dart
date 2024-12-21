@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:package_info_plus/package_info_plus.dart';
 import 'firebase_options.dart';
 import 'pages/broadcasts_page.dart';
 import 'pages/charity_page.dart';
@@ -57,22 +58,32 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isDarkTheme = false;
-  bool _notificationsEnabled = true;
+  String _appVersion = '2.0.0';
 
   @override
   void initState() {
     super.initState();
     _loadPreferences();
+    _getAppVersion();
   }
 
+  /// Загрузка пользовательских настроек
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
-      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? true;
     });
   }
 
+  /// Получение текущей версии приложения
+  Future<void> _getAppVersion() async {
+    final packageInfo = await PackageInfo.fromPlatform();
+    setState(() {
+      _appVersion = packageInfo.version;
+    });
+  }
+
+  /// Переключение темы
   void _toggleTheme(bool isDark) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', isDark);
@@ -81,34 +92,37 @@ class _MyAppState extends State<MyApp> {
     });
   }
 
-  void _toggleNotifications(bool isEnabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notificationsEnabled', isEnabled);
-    setState(() {
-      _notificationsEnabled = isEnabled;
-    });
-  }
-
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'My Flutter App',
-      theme: ThemeData.dark().copyWith(
-        scaffoldBackgroundColor: Colors.black,
-        primaryColor: Colors.blue,
-        appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
-        iconTheme: const IconThemeData(color: Colors.blue),
-        textTheme: const TextTheme(
-          bodyLarge: TextStyle(color: Colors.white),
-          bodyMedium: TextStyle(color: Colors.white),
-          titleLarge: TextStyle(color: Colors.blue),
-        ),
-      ),
+      title: 'Kemo News',
+      theme: _isDarkTheme
+          ? ThemeData.dark().copyWith(
+              scaffoldBackgroundColor: Colors.black,
+              primaryColor: Colors.blue,
+              appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
+              iconTheme: const IconThemeData(color: Colors.blue),
+              textTheme: const TextTheme(
+                bodyLarge: TextStyle(color: Colors.white),
+                bodyMedium: TextStyle(color: Colors.white),
+                titleLarge: TextStyle(color: Colors.blue),
+              ),
+            )
+          : ThemeData.light().copyWith(
+              scaffoldBackgroundColor: Colors.white,
+              primaryColor: Colors.blue,
+              appBarTheme: const AppBarTheme(backgroundColor: Colors.blue),
+              iconTheme: const IconThemeData(color: Colors.black),
+              textTheme: const TextTheme(
+                bodyLarge: TextStyle(color: Colors.black),
+                bodyMedium: TextStyle(color: Colors.black),
+                titleLarge: TextStyle(color: Colors.blue),
+              ),
+            ),
       home: HomePage(
         onToggleTheme: _toggleTheme,
-        onToggleNotifications: _toggleNotifications,
         isDarkTheme: _isDarkTheme,
-        notificationsEnabled: _notificationsEnabled,
+        appVersion: _appVersion,
       ),
       debugShowCheckedModeBanner: false,
     );
@@ -117,16 +131,14 @@ class _MyAppState extends State<MyApp> {
 
 class HomePage extends StatefulWidget {
   final Function(bool) onToggleTheme;
-  final Function(bool) onToggleNotifications;
   final bool isDarkTheme;
-  final bool notificationsEnabled;
+  final String appVersion;
 
   const HomePage({
     super.key,
     required this.onToggleTheme,
-    required this.onToggleNotifications,
     required this.isDarkTheme,
-    required this.notificationsEnabled,
+    required this.appVersion,
   });
 
   @override
@@ -207,19 +219,20 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
-  void _openSettings() {
-    showModalBottomSheet(
-      context: context,
-      builder: (context) {
-        return SettingsPage(
-          onToggleTheme: widget.onToggleTheme,
-          onToggleNotifications: widget.onToggleNotifications,
-          isDarkTheme: widget.isDarkTheme,
-          notificationsEnabled: widget.notificationsEnabled,
-        );
-      },
-    );
-  }
+void _openSettings() {
+  showModalBottomSheet(
+    context: context,
+    builder: (context) {
+      return SettingsPage(
+        onToggleTheme: widget.onToggleTheme,
+        isDarkTheme: widget.isDarkTheme,
+        appVersion: widget.appVersion,
+        updateAvailable: false, // Передано значение
+      );
+    },
+  );
+}
+
 
   @override
   Widget build(BuildContext context) {
