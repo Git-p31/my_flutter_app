@@ -20,9 +20,9 @@ class DatabaseHelper {
         'content': content,
         'timestamp': FieldValue.serverTimestamp(),
       });
-      _logger.i('News inserted successfully');
+      _logger.i('Новость успешно добавлена');
     } catch (e) {
-      _logger.e('Error inserting news', error: e);
+      _logger.e('Ошибка добавления новости: $e');
       rethrow;
     }
   }
@@ -39,13 +39,13 @@ class DatabaseHelper {
         final data = doc.data() as Map<String, dynamic>;
         return {
           'id': doc.id,
-          'title': data['title'] ?? 'Нет заголовка',
-          'content': data['content'] ?? 'Нет содержания',
+          'title': data['title'] ?? 'Без заголовка',
+          'content': data['content'] ?? 'Без содержания',
           'timestamp': data['timestamp']?.toDate().toString() ?? '',
         };
       }).toList();
     } catch (e) {
-      _logger.e('Error fetching news', error: e);
+      _logger.e('Ошибка получения новостей: $e');
       rethrow;
     }
   }
@@ -54,9 +54,9 @@ class DatabaseHelper {
   Future<void> deleteNewsById(String docId) async {
     try {
       await _firestore.collection('news').doc(docId).delete();
-      _logger.i('News with ID $docId deleted');
+      _logger.i('Новость с ID $docId успешно удалена');
     } catch (e) {
-      _logger.e('Error deleting news', error: e);
+      _logger.e('Ошибка удаления новости: $e');
       rethrow;
     }
   }
@@ -64,17 +64,18 @@ class DatabaseHelper {
   // ------------------- Методы для событий -------------------
 
   // Добавление события
-  Future<void> insertEvent(String title, String content, String imagePath) async {
+  Future<void> insertEvent(String title, String content, String imageBase64) async {
     try {
       await _firestore.collection('events').add({
         'title': title,
         'content': content,
-        'image_path': imagePath,
+        'image_base64': imageBase64, // Сохраняем строку Base64
         'timestamp': FieldValue.serverTimestamp(),
       });
-      _logger.i('Event inserted successfully');
+
+      _logger.i('Событие успешно добавлено');
     } catch (e) {
-      _logger.e('Error inserting event', error: e);
+      _logger.e('Ошибка добавления события: $e');
       rethrow;
     }
   }
@@ -91,14 +92,14 @@ class DatabaseHelper {
         final data = doc.data() as Map<String, dynamic>;
         return {
           'id': doc.id,
-          'title': data['title'] ?? 'Нет заголовка',
-          'content': data['content'] ?? 'Нет описания',
-          'image_path': data['image_path'] ?? '',
+          'title': data['title'] ?? 'Без заголовка',
+          'content': data['content'] ?? 'Без описания',
+          'image_base64': data['image_base64'] ?? '',
           'timestamp': data['timestamp']?.toDate().toString() ?? '',
         };
       }).toList();
     } catch (e) {
-      _logger.e('Error fetching events', error: e);
+      _logger.e('Ошибка получения событий: $e');
       rethrow;
     }
   }
@@ -107,9 +108,9 @@ class DatabaseHelper {
   Future<void> deleteEventById(String docId) async {
     try {
       await _firestore.collection('events').doc(docId).delete();
-      _logger.i('Event with ID $docId deleted');
+      _logger.i('Событие с ID $docId успешно удалено');
     } catch (e) {
-      _logger.e('Error deleting event', error: e);
+      _logger.e('Ошибка удаления события: $e');
       rethrow;
     }
   }
@@ -126,9 +127,9 @@ class DatabaseHelper {
         'password': hashedPassword,
         'role': role,
       });
-      _logger.i('User registered successfully');
+      _logger.i('Пользователь успешно зарегистрирован');
     } catch (e) {
-      _logger.e('Error registering user', error: e);
+      _logger.e('Ошибка регистрации пользователя: $e');
       rethrow;
     }
   }
@@ -151,7 +152,7 @@ class DatabaseHelper {
       }
       return null;
     } catch (e) {
-      _logger.e('Error logging in user', error: e);
+      _logger.e('Ошибка авторизации пользователя: $e');
       rethrow;
     }
   }
@@ -170,7 +171,7 @@ class DatabaseHelper {
         };
       }).toList();
     } catch (e) {
-      _logger.e('Error fetching users', error: e);
+      _logger.e('Ошибка получения пользователей: $e');
       rethrow;
     }
   }
@@ -179,9 +180,9 @@ class DatabaseHelper {
   Future<void> deleteUserById(String userId) async {
     try {
       await _firestore.collection('users').doc(userId).delete();
-      _logger.i('User with ID $userId deleted');
+      _logger.i('Пользователь с ID $userId успешно удалён');
     } catch (e) {
-      _logger.e('Error deleting user', error: e);
+      _logger.e('Ошибка удаления пользователя: $e');
       rethrow;
     }
   }

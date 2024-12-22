@@ -31,6 +31,7 @@ dependencies:
   firebase_core: ^3.9.0         # Firebase инициализация
   firebase_auth: ^5.3.4         # Firebase аутентификация
   firebase_messaging: ^15.1.6   # Уведомления Firebase
+  firebase_storage: 12.3.7
 
   # Логирование
   logger: ^2.0.2                # Логирование для отладки

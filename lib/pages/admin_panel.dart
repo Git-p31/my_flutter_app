@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:image_picker/image_picker.dart';
 import 'dart:io';
+import 'dart:convert';
 import '../database_helper.dart';
 
 class AdminDashboard extends StatefulWidget {
@@ -28,6 +29,13 @@ class _AdminDashboardState extends State<AdminDashboard> {
         _imageFile = File(pickedFile.path);
       });
     }
+  }
+
+  // Конвертация изображения в строку Base64
+  String? _imageToBase64(File? imageFile) {
+    if (imageFile == null) return null;
+    final bytes = imageFile.readAsBytesSync();
+    return base64Encode(bytes);
   }
 
   // Отправка новости
@@ -69,15 +77,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
       });
 
       try {
-        String imageUrl = '';
-        if (_imageFile != null) {
-          imageUrl = _imageFile!.path; // Заглушка для загрузки изображения
-        }
+        String? imageBase64 = _imageToBase64(_imageFile);
 
         await DatabaseHelper.instance.insertEvent(
           _titleController.text,
           _descriptionController.text,
-          imageUrl,
+          imageBase64 ?? '', // Передаем строку Base64 или пустую строку
         );
 
         if (mounted) {
@@ -115,84 +120,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // Удаление пользователя
-  Future<void> _deleteUser(String userId) async {
-    try {
-      await DatabaseHelper.instance.deleteUserById(userId);
-
-      if (mounted) {
-        _showMessage('Пользователь удалён');
-        Navigator.pop(context); // Закрыть диалог со списком пользователей
-      }
-    } catch (e) {
-      if (mounted) {
-        _showMessage('Ошибка при удалении пользователя: $e');
-      }
-    }
-  }
-
-  // Подтверждение удаления пользователя
-  void _confirmDeleteUser(String userId) {
-    showDialog(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        title: const Text('Удалить пользователя'),
-        content: const Text('Вы уверены, что хотите удалить этого пользователя?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: const Text('Отмена'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(ctx); // Закрыть диалог подтверждения
-              _deleteUser(userId);
-            },
-            child: const Text('Удалить'),
-          ),
-        ],
-      ),
-    );
-  }
-
-  // Отображение списка пользователей
-  void _displayUserList() async {
-    try {
-      List<Map<String, dynamic>> users = await DatabaseHelper.instance.getUsers();
-
-      if (!mounted) return;
-
-      showDialog(
-        context: context,
-        builder: (ctx) => AlertDialog(
-          title: const Text('Список пользователей'),
-          content: SingleChildScrollView(
-            child: Column(
-              children: users.map((user) => ListTile(
-                title: Text(user['username'] ?? 'Без имени'),
-                subtitle: Text(user['email'] ?? 'Без email'),
-                trailing: IconButton(
-                  icon: const Icon(Icons.delete, color: Colors.red),
-                  onPressed: () => _confirmDeleteUser(user['id']),
-                ),
-              )).toList(),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(ctx),
-              child: const Text('Закрыть'),
-            ),
-          ],
-        ),
-      );
-    } catch (e) {
-      if (mounted) {
-        _showMessage('Ошибка загрузки пользователей: $e');
-      }
-    }
-  }
-
   // Установка текущего действия
   void _setAction(String action) {
     setState(() {
@@ -210,11 +137,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ElevatedButton(
-                onPressed: _displayUserList,
-                child: const Text('Просмотреть пользователей'),
-              ),
-              const SizedBox(height: 20),
               ElevatedButton(
                 onPressed: () => _setAction('news'),
                 child: const Text('Создать новость'),

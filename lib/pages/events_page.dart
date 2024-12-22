@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:cached_network_image/cached_network_image.dart';
+import 'dart:convert'; // Для декодирования Base64
 import '../database_helper.dart';
 
 class EventsPage extends StatefulWidget {
@@ -77,37 +77,59 @@ class _EventsPageState extends State<EventsPage> {
                     final event = _eventsList[index];
                     final String title = event['title'] ?? 'Нет заголовка';
                     final String content = event['content'] ?? 'Нет описания';
-                    final String imageUrl = event['image_path'] ?? '';
+                    final String imageBase64 = event['image_base64'] ?? ''; // Получаем Base64 строку
                     final String docId = event['id'] ?? '';
 
                     return Card(
                       color: Colors.grey[900],
                       margin: const EdgeInsets.all(8.0),
-                      child: ListTile(
-                        contentPadding: const EdgeInsets.all(8.0),
-                        title: Text(title, style: const TextStyle(color: Colors.blue)),
-                        subtitle: Text(content, style: const TextStyle(color: Colors.white70)),
-                        trailing: Row(
-                          mainAxisSize: MainAxisSize.min,
-                          children: [
-                            if (imageUrl.isNotEmpty)
-                              CachedNetworkImage(
-                                imageUrl: imageUrl,
-                                width: 50,
-                                height: 50,
-                                fit: BoxFit.cover,
-                                placeholder: (context, url) =>
-                                    const CircularProgressIndicator(),
-                                errorWidget: (context, url, error) =>
-                                    const Icon(Icons.error, color: Colors.red),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          if (imageBase64.isNotEmpty)
+                            Image.memory(
+                              base64Decode(imageBase64), // Декодируем Base64 строку
+                              width: double.infinity,
+                              height: 200,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) => const Icon(
+                                Icons.error,
+                                color: Colors.red,
                               ),
-                            if (widget.userRole == 'admin')
-                              IconButton(
+                            ),
+                          Padding(
+                            padding: const EdgeInsets.all(8.0),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  title,
+                                  style: const TextStyle(
+                                    color: Colors.blue,
+                                    fontSize: 18,
+                                    fontWeight: FontWeight.bold,
+                                  ),
+                                ),
+                                const SizedBox(height: 8),
+                                Text(
+                                  content,
+                                  style: const TextStyle(
+                                    color: Colors.white70,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (widget.userRole == 'admin')
+                            Align(
+                              alignment: Alignment.centerRight,
+                              child: IconButton(
                                 icon: const Icon(Icons.delete, color: Colors.red),
                                 onPressed: () => _deleteEvent(docId),
                               ),
-                          ],
-                        ),
+                            ),
+                        ],
                       ),
                     );
                   },
