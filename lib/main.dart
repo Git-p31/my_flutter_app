@@ -1,7 +1,9 @@
+// Импорты
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:package_info_plus/package_info_plus.dart';
+import 'package:image_picker/image_picker.dart'; // Для выбора фото
 import 'firebase_options.dart';
 import 'pages/broadcasts_page.dart';
 import 'pages/charity_page.dart';
@@ -12,7 +14,9 @@ import 'pages/profile_page.dart';
 import 'pages/auth_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/cards_page.dart';
+import 'dart:io';
 
+// Точка входа в приложение
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
@@ -25,6 +29,7 @@ void main() async {
   }
 }
 
+// Экран с ошибкой при сбое Firebase
 class ErrorApp extends StatelessWidget {
   final String message;
   const ErrorApp({super.key, required this.message});
@@ -49,6 +54,7 @@ class ErrorApp extends StatelessWidget {
   }
 }
 
+// Основной виджет приложения
 class MyApp extends StatefulWidget {
   const MyApp({super.key});
 
@@ -67,26 +73,26 @@ class _MyAppState extends State<MyApp> {
     _getAppVersion();
   }
 
-  /// Загрузка пользовательских настроек
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
     });
   }
 
-  /// Получение текущей версии приложения
   Future<void> _getAppVersion() async {
     final packageInfo = await PackageInfo.fromPlatform();
+    if (!mounted) return;
     setState(() {
       _appVersion = packageInfo.version;
     });
   }
 
-  /// Переключение темы
   void _toggleTheme(bool isDark) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', isDark);
+    if (!mounted) return;
     setState(() {
       _isDarkTheme = isDark;
     });
@@ -129,6 +135,7 @@ class _MyAppState extends State<MyApp> {
   }
 }
 
+// Главная страница приложения
 class HomePage extends StatefulWidget {
   final Function(bool) onToggleTheme;
   final bool isDarkTheme;
@@ -148,6 +155,8 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   String _userRole = 'user';
+  String _userName = 'Пользователь';
+  String? _userPhoto;
 
   final List<String> _titles = [
     'Новости',
@@ -164,10 +173,12 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUserRole();
+    _loadUserData();
   }
 
   Future<void> _loadUserRole() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     setState(() {
       _userRole = prefs.getString('role') ?? 'user';
       _pages = [
@@ -176,16 +187,37 @@ class _HomePageState extends State<HomePage> {
         const BroadcastsPage(),
         const WorkshopsPage(),
         const CharityPage(),
-        if (_userRole == 'admin') const CardsPage(), // Страница «Проекты» только для админов
+        if (_userRole == 'admin') const CardsPage(),
       ];
     });
+  }
+
+  Future<void> _loadUserData() async {
+    final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
+    setState(() {
+      _userName = prefs.getString('username') ?? 'Пользователь';
+      _userPhoto = prefs.getString('userPhoto');
+    });
+  }
+
+  Future<void> _selectPhoto() async {
+    final picker = ImagePicker();
+    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
+    if (pickedFile != null) {
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.setString('userPhoto', pickedFile.path);
+      setState(() {
+        _userPhoto = pickedFile.path;
+      });
+    }
   }
 
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
     });
-    Navigator.pop(context);
+    Navigator.pop(context); // Закрытие бокового меню
   }
 
   void _openProfile() async {
@@ -196,7 +228,6 @@ class _HomePageState extends State<HomePage> {
 
     if (isLoggedIn) {
       final userId = prefs.getString('id') ?? 'Неизвестный ID';
-      final userName = prefs.getString('username') ?? 'Пользователь';
       final userEmail = prefs.getString('email') ?? 'user@example.com';
       final userRole = prefs.getString('role') ?? 'user';
 
@@ -205,12 +236,12 @@ class _HomePageState extends State<HomePage> {
         MaterialPageRoute(
           builder: (context) => ProfilePage(
             userId: userId,
-            userName: userName,
+            userName: _userName,
             userEmail: userEmail,
             userRole: userRole,
           ),
         ),
-      );
+      ).then((_) => _loadUserData());
     } else {
       Navigator.push(
         context,
@@ -218,21 +249,6 @@ class _HomePageState extends State<HomePage> {
       );
     }
   }
-
-void _openSettings() {
-  showModalBottomSheet(
-    context: context,
-    builder: (context) {
-      return SettingsPage(
-        onToggleTheme: widget.onToggleTheme,
-        isDarkTheme: widget.isDarkTheme,
-        appVersion: widget.appVersion,
-        updateAvailable: false, // Передано значение
-      );
-    },
-  );
-}
-
 
   @override
   Widget build(BuildContext context) {
@@ -246,7 +262,15 @@ void _openSettings() {
           ),
           IconButton(
             icon: const Icon(Icons.settings),
-            onPressed: _openSettings,
+            onPressed: () => showModalBottomSheet(
+              context: context,
+              builder: (context) => SettingsPage(
+                onToggleTheme: widget.onToggleTheme,
+                isDarkTheme: widget.isDarkTheme,
+                appVersion: widget.appVersion,
+                updateAvailable: false,
+              ),
+            ),
           ),
         ],
       ),
@@ -260,11 +284,23 @@ void _openSettings() {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.blue),
-              child: Text(
-                'Навигация',
-                style: TextStyle(color: Colors.white, fontSize: 24),
+            GestureDetector(
+              onTap: _selectPhoto, // Открытие выбора фото
+              child: UserAccountsDrawerHeader(
+                decoration: const BoxDecoration(color: Colors.blue),
+                accountName: Text(
+                  _userName,
+                  style: const TextStyle(fontSize: 16),
+                ),
+                accountEmail: null,
+                currentAccountPicture: CircleAvatar(
+                  backgroundImage: _userPhoto != null
+                      ? FileImage(File(_userPhoto!))
+                      : null,
+                  child: _userPhoto == null
+                      ? const Icon(Icons.person, size: 40)
+                      : null,
+                ),
               ),
             ),
             _buildDrawerItem(Icons.account_circle, 'Профиль', _openProfile),
@@ -274,7 +310,7 @@ void _openSettings() {
             _buildDrawerItem(Icons.work, 'Воркшопы', 3),
             _buildDrawerItem(Icons.volunteer_activism, 'Цдака', 4),
             if (_userRole == 'admin')
-              _buildDrawerItem(Icons.folder, 'Проекты', 5), // Пункт «Проекты» только для админов
+              _buildDrawerItem(Icons.folder, 'Проекты', 5),
           ],
         ),
       ),

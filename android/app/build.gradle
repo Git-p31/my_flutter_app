@@ -1,16 +1,15 @@
 plugins {
     id "com.android.application"
     id "kotlin-android"
-    // Плагин Flutter должен идти после плагинов Android и Kotlin
-    id "dev.flutter.flutter-gradle-plugin"
+    id "dev.flutter.flutter-gradle-plugin" // Плагин Flutter должен быть после Android и Kotlin
     id "com.google.gms.google-services" // Плагин для Firebase
 }
 
 android {
-    namespace "com.example.Kemo_news"    // Пространство имён вашего приложения
-    compileSdk 34                              // Явно указываем версию SDK
+    namespace "com.example.my_flutter_app" // Пространство имен вашего приложения
+    compileSdk 34 // Явно указываем версию SDK
 
-    ndkVersion flutter.ndkVersion             // Использование версии NDK из Flutter
+    ndkVersion flutter.ndkVersion // Используем NDK версию из Flutter
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17
@@ -22,25 +21,23 @@ android {
     }
 
     defaultConfig {
-        applicationId "com.example.my_flutter_app"   // Убедитесь, что это ваш пакетный идентификатор
-        minSdk 23                                    // Указана минимальная версия SDK
-        targetSdk 34                              // Целевая версия SDK
-        versionCode 1                                // Версия приложения (код)
-        versionName "1.0.0"                          // Версия приложения (имя)
+        applicationId "com.example.my_flutter_app" // Убедитесь, что это ваш пакетный идентификатор
+        minSdk 23 // Минимальная версия SDK
+        targetSdk 34 // Целевая версия SDK
+        versionCode 1 // Версия приложения (код)
+        versionName "1.0.0" // Версия приложения (имя)
 
-        // Если используете библиотеки, которые требуют изменения Multidex
-        multiDexEnabled true
+        multiDexEnabled true // Включение поддержки Multidex
     }
 
     buildTypes {
         debug {
             signingConfig signingConfigs.debug
-            minifyEnabled false
+            minifyEnabled false // Без минификации для отладки
         }
         release {
             signingConfig signingConfigs.debug
-            // Включение R8 для оптимизации и уменьшения размера APK
-            minifyEnabled true
+            minifyEnabled true // Включение минификации для релиза
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }
@@ -51,10 +48,8 @@ flutter {
 }
 
 dependencies {
-    implementation 'com.google.firebase:firebase-analytics:21.4.0'   // Firebase Analytics
-    implementation 'com.google.firebase:firebase-auth:22.3.1'        // Firebase Auth
-    implementation 'com.google.firebase:firebase-firestore:24.11.0'  // Firebase Firestore
-
-    // Поддержка Multidex, если приложение стало слишком большим
-    implementation 'androidx.multidex:multidex:2.0.1'
+    implementation 'com.google.firebase:firebase-analytics:21.4.0' // Firebase Analytics
+    implementation 'com.google.firebase:firebase-auth:22.3.1' // Firebase Auth
+    implementation 'com.google.firebase:firebase-firestore:24.11.0' // Firebase Firestore
+    implementation 'androidx.multidex:multidex:2.0.1' // Поддержка Multidex
 }

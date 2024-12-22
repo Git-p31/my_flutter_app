@@ -19,6 +19,7 @@ class ProfilePage extends StatelessWidget {
 
   // ID пользователя, для которого должна показываться кнопка админ-панели
   static const String adminUserId = 'qmlqEh6TGjWFTIhu4YLK';
+  
 
   Future<void> _openAdminPanel(BuildContext context) async {
     Navigator.push(

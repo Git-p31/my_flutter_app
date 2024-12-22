@@ -1,16 +1,18 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-
-    <!-- Разрешение для доступа к интернету -->
+    <!-- Разрешения -->
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.CAMERA"/>
-    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE"/>
-
+    <uses-permission android:name="android.permission.CAMERA" />
+    <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <application
         android:label="Kemo_News"
         android:icon="@mipmap/ic_launcher"
-        android:theme="@style/NormalTheme">
+        android:theme="@style/NormalTheme"
+        android:allowBackup="true"
+        android:fullBackupContent="true">
 
         <activity
             android:name=".MainActivity"
@@ -20,20 +22,19 @@
             android:windowSoftInputMode="adjustResize"
             android:configChanges="orientation|keyboardHidden|keyboard|screenSize|smallestScreenSize|locale|layoutDirection|fontScale|screenLayout|density|uiMode">
 
-            <!-- Тема для активности при запуске -->
+            <!-- Тема для запуска активности -->
             <meta-data
                 android:name="io.flutter.embedding.android.NormalTheme"
                 android:resource="@style/LaunchTheme" />
 
-            <!-- Intent-filter для запуска главной активности -->
+            <!-- Intent-filter для запуска приложения -->
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
-
         </activity>
 
-        <!-- Meta-data для Flutter -->
+        <!-- Поддержка Flutter -->
         <meta-data
             android:name="flutterEmbedding"
             android:value="2" />
