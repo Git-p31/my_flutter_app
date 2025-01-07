@@ -187,8 +187,22 @@ class DatabaseHelper {
     }
   }
 
+  // Обновление роли пользователя
+  Future<void> updateUserRole(String userId, String newRole) async {
+    try {
+      await _firestore.collection('users').doc(userId).update({
+        'role': newRole,
+      });
+      _logger.i('Роль пользователя с ID $userId успешно обновлена на $newRole');
+    } catch (e) {
+      _logger.e('Ошибка обновления роли пользователя: $e');
+      rethrow;
+    }
+  }
+
   // ------------------- Вспомогательные методы -------------------
 
+  // Хеширование пароля
   String _hashPassword(String password) {
     return sha256.convert(utf8.encode(password)).toString();
   }

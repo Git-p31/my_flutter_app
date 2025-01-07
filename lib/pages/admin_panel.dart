@@ -18,6 +18,8 @@ class _AdminDashboardState extends State<AdminDashboard> {
   File? _imageFile;
   bool _isProcessing = false;
   String _currentAction = '';
+  List<Map<String, dynamic>> _users = [];
+  bool _isLoadingUsers = false;
 
   // Выбор изображения из галереи
   Future<void> _selectImage() async {
@@ -127,6 +129,44 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
   }
 
+  // Получение списка пользователей
+  Future<void> _loadUsers() async {
+    setState(() {
+      _isLoadingUsers = true;
+    });
+
+    try {
+      final users = await DatabaseHelper.instance.getUsers();
+      setState(() {
+        _users = users;
+      });
+    } catch (e) {
+      if (mounted) {
+        _showMessage('Ошибка при загрузке пользователей: $e');
+      }
+    } finally {
+      setState(() {
+        _isLoadingUsers = false;
+      });
+    }
+  }
+
+  // Изменение роли пользователя
+  Future<void> _changeUserRole(String userId, String newRole) async {
+    try {
+      await DatabaseHelper.instance.updateUserRole(userId, newRole);
+      _loadUsers(); // Обновить список пользователей
+      _showMessage('Роль пользователя обновлена!');
+    } catch (e) {
+      _showMessage('Ошибка при изменении роли: $e');
+    }
+  }
+
+  @override
+  void initState() {
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -186,6 +226,56 @@ class _AdminDashboardState extends State<AdminDashboard> {
                     ],
                   ),
                 ),
+              const SizedBox(height: 20),
+              ElevatedButton(
+                onPressed: _loadUsers,
+                child: const Text('Показать список пользователей'),
+              ),
+              const SizedBox(height: 20),
+              _isLoadingUsers
+                  ? const CircularProgressIndicator()
+                  : _users.isNotEmpty
+                      ? Column(
+                          crossAxisAlignment: CrossAxisAlignment.stretch,
+                          children: _users.map((user) {
+                            return Card(
+                              margin: const EdgeInsets.symmetric(vertical: 8),
+                              child: Padding(
+                                padding: const EdgeInsets.all(16.0),
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(user['username'], style: const TextStyle(fontSize: 16)),
+                                    const SizedBox(height: 5),
+                                    Text(
+                                      user['role']?.toUpperCase() ?? 'Не определено',
+                                      style: const TextStyle(fontSize: 14, color: Colors.grey),
+                                    ),
+                                    const SizedBox(height: 10),
+                                    DropdownButton<String>(
+                                      value: user['role'],
+                                      onChanged: (newRole) {
+                                        if (newRole != null) {
+                                          _changeUserRole(user['id'], newRole);
+                                        }
+                                      },
+                                      items: <String>['admin', 'user', 'moderator', 'rebe']
+                                          .map<DropdownMenuItem<String>>((String value) {
+                                        return DropdownMenuItem<String>(
+                                          value: value,
+                                          child: Text(value),
+                                        );
+                                      }).toList(),
+                                      dropdownColor: Colors.grey[850], // Set background color for the dropdown
+                                      style: const TextStyle(color: Colors.white),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            );
+                          }).toList(),
+                        )
+                      : Container(), // Removed 'Нет пользователей' text
             ],
           ),
         ),
