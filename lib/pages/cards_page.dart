@@ -33,7 +33,7 @@ class CardsGrid extends StatelessWidget {
     CardData(
       title: 'Создание мобильного приложения',
       subtitle: 'UI/UX дизайн',
-      progress: 40,
+      progress: 50,
       gradient: LinearGradient(
         colors: [Color(0xFF00BFA5), Color(0xFF004D40)],
         begin: Alignment.topLeft,

@@ -62,7 +62,7 @@ class _BroadcastsPageState extends State<BroadcastsPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('Трансляции'),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: Colors.deepPurpleAccent,
       ),
       body: FutureBuilder<Map<String, List<dynamic>>>(
         future: _broadcastsFuture,
@@ -96,11 +96,19 @@ class _BroadcastsPageState extends State<BroadcastsPage> {
                   children: [
                     Container(
                       width: double.infinity,
-                      color: Colors.blueAccent,
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [Colors.deepPurpleAccent, Colors.blueAccent],
+                        ),
+                      ),
                       padding: const EdgeInsets.all(10.0),
                       child: Text(
                         'Канал: $channelName',
-                        style: const TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white),
+                        style: const TextStyle(
+                          fontSize: 20,
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                     broadcasts.isEmpty
@@ -118,25 +126,46 @@ class _BroadcastsPageState extends State<BroadcastsPage> {
                               final videoId = broadcast['id']['videoId'];
 
                               return Card(
-                                margin: const EdgeInsets.all(10.0),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(15.0),
+                                ),
+                                elevation: 5,
+                                margin: const EdgeInsets.symmetric(vertical: 10.0, horizontal: 15.0),
                                 child: ListTile(
-                                  leading: Image.network(
-                                    thumbnailUrl,
-                                    width: 100,
-                                    height: 60,
-                                    fit: BoxFit.cover,
-                                    loadingBuilder: (context, child, progress) {
-                                      if (progress == null) return child;
-                                      return const SizedBox(
-                                        width: 100,
-                                        height: 60,
-                                        child: Center(
-                                          child: CircularProgressIndicator(strokeWidth: 2),
-                                        ),
-                                      );
-                                    },
+                                  contentPadding: const EdgeInsets.all(10.0),
+                                  leading: ClipRRect(
+                                    borderRadius: BorderRadius.circular(10.0),
+                                    child: Image.network(
+                                      thumbnailUrl,
+                                      width: 100,
+                                      height: 60,
+                                      fit: BoxFit.cover,
+                                      loadingBuilder: (context, child, progress) {
+                                        if (progress == null) return child;
+                                        return const SizedBox(
+                                          width: 100,
+                                          height: 60,
+                                          child: Center(
+                                            child: CircularProgressIndicator(strokeWidth: 2),
+                                          ),
+                                        );
+                                      },
+                                    ),
                                   ),
-                                  title: Text(title, style: const TextStyle(fontSize: 16)),
+                                  title: Text(
+                                    title,
+                                    style: const TextStyle(
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                    maxLines: 2,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  trailing: const Icon(
+                                    Icons.play_circle_fill,
+                                    color: Colors.deepPurpleAccent,
+                                    size: 30,
+                                  ),
                                   onTap: () => _launchVideo(videoId),
                                 ),
                               );
@@ -150,7 +179,7 @@ class _BroadcastsPageState extends State<BroadcastsPage> {
           }
         },
       ),
-      backgroundColor: Colors.grey[900],
+      backgroundColor: Colors.grey[100],
     );
   }
 }
