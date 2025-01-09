@@ -187,7 +187,7 @@ class _HomePageState extends State<HomePage> {
         const BroadcastsPage(),
         const WorkshopsPage(),
         const CharityPage(),
-        if (_userRole == 'admin') const CardsPage(),
+        if (_userRole == 'admin' || _userRole == 'rebe' || _userRole == 'moderator') const CardsPage(),
       ];
     });
   }
@@ -268,7 +268,7 @@ class _HomePageState extends State<HomePage> {
                 onToggleTheme: widget.onToggleTheme,
                 isDarkTheme: widget.isDarkTheme,
                 appVersion: widget.appVersion,
-                updateAvailable: false,
+                updateAvailable: false, updateUrl: '',
               ),
             ),
           ),
@@ -309,7 +309,7 @@ class _HomePageState extends State<HomePage> {
             _buildDrawerItem(Icons.live_tv, 'Трансляции', 2),
             _buildDrawerItem(Icons.work, 'Воркшопы', 3),
             _buildDrawerItem(Icons.volunteer_activism, 'Цдака', 4),
-            if (_userRole == 'admin')
+            if (_userRole == 'admin' || _userRole == 'rebe' || _userRole == 'moderator')
               _buildDrawerItem(Icons.folder, 'Проекты', 5),
           ],
         ),

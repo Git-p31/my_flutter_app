@@ -113,6 +113,11 @@ class ProfilePage extends StatelessWidget {
               leading: const Icon(Icons.perm_identity),
               title: Text('ID: $userId', style: const TextStyle(fontSize: 18)),
             ),
+            Divider(color: Colors.grey[300]),
+            ListTile(
+              leading: const Icon(Icons.security),
+              title: Text('Роль: $userRole', style: const TextStyle(fontSize: 18)),
+            ),
             // Условие для отображения кнопки админ панели
             if (userId == adminUserId)
               Padding(
