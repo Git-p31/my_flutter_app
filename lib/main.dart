@@ -13,8 +13,7 @@ import 'pages/auth_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/cards_page.dart';
 import 'dart:io';
-import 'package:firebase_messaging/firebase_messaging.dart'; // Для push уведомлений
-import 'package:logger/logger.dart'; // Для логирования
+
 
 // Точка входа в приложение
 void main() async {
@@ -24,17 +23,10 @@ void main() async {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler); // Обработчик уведомлений в фоновом режиме
     runApp(const MyApp());
   } catch (e) {
     runApp(ErrorApp(message: 'Ошибка инициализации Firebase: $e'));
   }
-}
-
-// Обработчик сообщений в фоне
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  final logger = Logger();
-  logger.d('Background message: ${message.notification?.title}, ${message.notification?.body}');
 }
 
 // Экран с ошибкой при сбое Firebase
@@ -72,48 +64,19 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isDarkTheme = false;
-  bool _notificationsEnabled = false; // Добавляем состояние для уведомлений
 
   @override
   void initState() {
     super.initState();
     _loadPreferences();
-    _initializeFCM();
   }
 
-  // Загрузка предпочтений (темы и уведомлений)
+  // Загрузка предпочтений (темы)
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
       _isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
-      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false; // Загружаем настройки уведомлений
-    });
-  }
-
-  // Инициализация FCM
-  Future<void> _initializeFCM() async {
-    FirebaseMessaging messaging = FirebaseMessaging.instance;
-    // Получение токена устройства
-    String? token = await messaging.getToken();
-    final logger = Logger();
-    logger.d('FCM Token: $token');
-
-    // Запрос на разрешение получения уведомлений
-    NotificationSettings settings = await messaging.requestPermission();
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      logger.d('User granted permission for push notifications');
-    } else {
-      logger.d('User declined or has not accepted permission');
-    }
-
-    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
-      logger.d('Message received: ${message.notification?.title}, ${message.notification?.body}');
-      // Дополнительная обработка уведомлений
-    });
-
-    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
-      logger.d('Message clicked! ${message.notification?.title}, ${message.notification?.body}');
     });
   }
 
@@ -124,15 +87,6 @@ class _MyAppState extends State<MyApp> {
     if (!mounted) return;
     setState(() {
       _isDarkTheme = isDark;
-    });
-  }
-
-  // Переключение уведомлений
-  void _toggleNotifications(bool isEnabled) async {
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setBool('notificationsEnabled', isEnabled);
-    setState(() {
-      _notificationsEnabled = isEnabled;
     });
   }
 
@@ -166,8 +120,6 @@ class _MyAppState extends State<MyApp> {
       home: HomePage(
         onToggleTheme: _toggleTheme,
         isDarkTheme: _isDarkTheme,
-        notificationsEnabled: _notificationsEnabled, // Передаем настройки уведомлений
-        onToggleNotifications: _toggleNotifications, // Передаем функцию для изменения состояния уведомлений
       ),
       debugShowCheckedModeBanner: false,
     );
@@ -178,15 +130,11 @@ class _MyAppState extends State<MyApp> {
 class HomePage extends StatefulWidget {
   final Function(bool) onToggleTheme;
   final bool isDarkTheme;
-  final bool notificationsEnabled; // Добавляем параметр для уведомлений
-  final Function(bool) onToggleNotifications; // Функция для переключения уведомлений
 
   const HomePage({
     super.key,
     required this.onToggleTheme,
     required this.isDarkTheme,
-    required this.notificationsEnabled, // Добавляем параметр
-    required this.onToggleNotifications, // Добавляем функцию
   });
 
   @override
@@ -313,8 +261,7 @@ class _HomePageState extends State<HomePage> {
               builder: (context) => SettingsPage(
                 onToggleTheme: widget.onToggleTheme,
                 isDarkTheme: widget.isDarkTheme,
-                notificationsEnabled: widget.notificationsEnabled, // Передаем параметр
-                onToggleNotifications: widget.onToggleNotifications, appVersion: '', // Передаем функцию
+                appVersion: '',
               ),
             ),
           ),
