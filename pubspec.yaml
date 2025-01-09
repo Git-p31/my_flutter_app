@@ -31,7 +31,7 @@ dependencies:
   firebase_core: ^3.9.0         # Firebase инициализация
   firebase_auth: ^5.3.4         # Firebase аутентификация
   firebase_messaging: ^15.1.6   # Уведомления Firebase
-  firebase_storage: 12.3.7
+  firebase_storage: ^12.3.7
 
   # Логирование
   logger: ^2.0.2                # Логирование для отладки
@@ -64,10 +64,11 @@ flutter:
 
   # Подключение мультимедиа
   assets:
-    - assets/charity_video.mp4
-    
+    - assets/video/charity_video.mp4
+    - assets/icon/app_icon.png
+
 flutter_launcher_icons:
   android: true
   ios: true
-  image_path: "assets/icon/app_icon.png" # Укажите путь к вашему изображению
+  image_path: "assets/icon/app_icon.png"
   remove_alpha_ios: true

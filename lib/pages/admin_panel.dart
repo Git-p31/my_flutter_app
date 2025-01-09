@@ -21,11 +21,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
   List<Map<String, dynamic>> _users = [];
   bool _isLoadingUsers = false;
 
-  // Выбор изображения из галереи
   Future<void> _selectImage() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-
     if (pickedFile != null && mounted) {
       setState(() {
         _imageFile = File(pickedFile.path);
@@ -33,14 +31,12 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // Конвертация изображения в строку Base64
   String? _imageToBase64(File? imageFile) {
     if (imageFile == null) return null;
     final bytes = imageFile.readAsBytesSync();
     return base64Encode(bytes);
   }
 
-  // Отправка новости
   Future<void> _submitNews() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -52,10 +48,9 @@ class _AdminDashboardState extends State<AdminDashboard> {
           _titleController.text,
           _descriptionController.text,
         );
-
         if (mounted) {
           _resetForm();
-          _showMessage('Новость успешно добавлена!');
+          _showMessage('Новость добавлена!');
         }
       } catch (e) {
         if (mounted) {
@@ -71,7 +66,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // Отправка события
   Future<void> _submitEvent() async {
     if (_formKey.currentState!.validate()) {
       setState(() {
@@ -80,16 +74,14 @@ class _AdminDashboardState extends State<AdminDashboard> {
 
       try {
         String? imageBase64 = _imageToBase64(_imageFile);
-
         await DatabaseHelper.instance.insertEvent(
           _titleController.text,
           _descriptionController.text,
-          imageBase64 ?? '', // Передаем строку Base64 или пустую строку
+          imageBase64 ?? '',
         );
-
         if (mounted) {
           _resetForm();
-          _showMessage('Событие успешно добавлено!');
+          _showMessage('Событие добавлено!');
         }
       } catch (e) {
         if (mounted) {
@@ -105,7 +97,6 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // Сброс формы
   void _resetForm() {
     setState(() {
       _titleController.clear();
@@ -115,21 +106,18 @@ class _AdminDashboardState extends State<AdminDashboard> {
     });
   }
 
-  // Показ сообщения
   void _showMessage(String message) {
     if (mounted) {
       ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
     }
   }
 
-  // Установка текущего действия
   void _setAction(String action) {
     setState(() {
-      _currentAction = action;
+      _currentAction = _currentAction == action ? '' : action;
     });
   }
 
-  // Получение списка пользователей
   Future<void> _loadUsers() async {
     setState(() {
       _isLoadingUsers = true;
@@ -151,131 +139,145 @@ class _AdminDashboardState extends State<AdminDashboard> {
     }
   }
 
-  // Изменение роли пользователя
   Future<void> _changeUserRole(String userId, String newRole) async {
     try {
       await DatabaseHelper.instance.updateUserRole(userId, newRole);
-      _loadUsers(); // Обновить список пользователей
-      _showMessage('Роль пользователя обновлена!');
+      _loadUsers();
+      _showMessage('Роль обновлена!');
     } catch (e) {
-      _showMessage('Ошибка при изменении роли: $e');
+      _showMessage('Ошибка: $e');
     }
-  }
-
-  @override
-  void initState() {
-    super.initState();
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(title: const Text('Админ-панель')),
+      appBar: AppBar(
+        title: const Text('Админ-панель'),
+        centerTitle: true,
+      ),
       body: Padding(
         padding: const EdgeInsets.all(16.0),
         child: SingleChildScrollView(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ElevatedButton(
+              Container(
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  color: Colors.blueAccent.withAlpha((0.1 * 255).toInt()),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Управление контентом',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
                 onPressed: () => _setAction('news'),
-                child: const Text('Создать новость'),
+                icon: const Icon(Icons.article),
+                label: const Text('Создать новость'),
               ),
-              const SizedBox(height: 20),
-              ElevatedButton(
+              const SizedBox(height: 10),
+              ElevatedButton.icon(
                 onPressed: () => _setAction('event'),
-                child: const Text('Создать событие'),
+                icon: const Icon(Icons.event),
+                label: const Text('Создать событие'),
               ),
               const SizedBox(height: 20),
-              if (_currentAction == 'news' || _currentAction == 'event')
-                Form(
-                  key: _formKey,
-                  child: Column(
-                    children: [
-                      TextFormField(
-                        controller: _titleController,
-                        decoration: const InputDecoration(labelText: 'Название'),
-                        validator: (value) => value!.isEmpty ? 'Название обязательно' : null,
-                      ),
-                      const SizedBox(height: 10),
-                      TextFormField(
-                        controller: _descriptionController,
-                        decoration: const InputDecoration(labelText: 'Описание'),
-                        maxLines: 3,
-                        validator: (value) => value!.isEmpty ? 'Описание обязательно' : null,
-                      ),
-                      const SizedBox(height: 20),
-                      if (_currentAction == 'event') ...[
-                        ElevatedButton.icon(
-                          onPressed: _selectImage,
-                          icon: const Icon(Icons.image),
-                          label: const Text('Выбрать изображение'),
-                        ),
-                        const SizedBox(height: 10),
-                        _imageFile != null
-                            ? Image.file(_imageFile!, height: 150, fit: BoxFit.cover)
-                            : const Text('Изображение не выбрано', textAlign: TextAlign.center),
-                        const SizedBox(height: 20),
-                      ],
-                      _isProcessing
-                          ? const CircularProgressIndicator()
-                          : ElevatedButton(
-                              onPressed: _currentAction == 'news' ? _submitNews : _submitEvent,
-                              child: Text(_currentAction == 'news' ? 'Добавить новость' : 'Добавить событие'),
+              if (_currentAction.isNotEmpty)
+                Card(
+                  elevation: 4,
+                  margin: const EdgeInsets.symmetric(vertical: 10),
+                  child: Padding(
+                    padding: const EdgeInsets.all(16.0),
+                    child: Form(
+                      key: _formKey,
+                      child: Column(
+                        children: [
+                          TextFormField(
+                            controller: _titleController,
+                            decoration: const InputDecoration(labelText: 'Название'),
+                            validator: (value) => value!.isEmpty ? 'Заполните название' : null,
+                          ),
+                          const SizedBox(height: 10),
+                          TextFormField(
+                            controller: _descriptionController,
+                            decoration: const InputDecoration(labelText: 'Описание'),
+                            maxLines: 3,
+                            validator: (value) => value!.isEmpty ? 'Заполните описание' : null,
+                          ),
+                          const SizedBox(height: 20),
+                          if (_currentAction == 'event') ...[
+                            ElevatedButton.icon(
+                              onPressed: _selectImage,
+                              icon: const Icon(Icons.image),
+                              label: const Text('Выбрать изображение'),
                             ),
-                    ],
+                            const SizedBox(height: 10),
+                            if (_imageFile != null)
+                              ClipRRect(
+                                borderRadius: BorderRadius.circular(10),
+                                child: Image.file(_imageFile!, height: 150, fit: BoxFit.cover),
+                              ),
+                          ],
+                          const SizedBox(height: 20),
+                          _isProcessing
+                              ? const CircularProgressIndicator()
+                              : ElevatedButton(
+                                  onPressed: _currentAction == 'news' ? _submitNews : _submitEvent,
+                                  child: Text(_currentAction == 'news' ? 'Добавить новость' : 'Добавить событие'),
+                                ),
+                        ],
+                      ),
+                    ),
                   ),
                 ),
               const SizedBox(height: 20),
-              ElevatedButton(
+              Container(
+                padding: const EdgeInsets.all(10.0),
+                decoration: BoxDecoration(
+                  color: Colors.greenAccent.withAlpha((0.1 * 255).toInt()),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  'Управление пользователями',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                  textAlign: TextAlign.center,
+                ),
+              ),
+              const SizedBox(height: 20),
+              ElevatedButton.icon(
                 onPressed: _loadUsers,
-                child: const Text('Показать список пользователей'),
+                icon: const Icon(Icons.people),
+                label: const Text('Загрузить пользователей'),
               ),
               const SizedBox(height: 20),
               _isLoadingUsers
-                  ? const CircularProgressIndicator()
+                  ? const Center(child: CircularProgressIndicator())
                   : _users.isNotEmpty
                       ? Column(
-                          crossAxisAlignment: CrossAxisAlignment.stretch,
                           children: _users.map((user) {
                             return Card(
-                              margin: const EdgeInsets.symmetric(vertical: 8),
-                              child: Padding(
-                                padding: const EdgeInsets.all(16.0),
-                                child: Column(
-                                  crossAxisAlignment: CrossAxisAlignment.start,
-                                  children: [
-                                    Text(user['username'], style: const TextStyle(fontSize: 16)),
-                                    const SizedBox(height: 5),
-                                    Text(
-                                      user['role']?.toUpperCase() ?? 'Не определено',
-                                      style: const TextStyle(fontSize: 14, color: Colors.grey),
-                                    ),
-                                    const SizedBox(height: 10),
-                                    DropdownButton<String>(
-                                      value: user['role'],
-                                      onChanged: (newRole) {
-                                        if (newRole != null) {
-                                          _changeUserRole(user['id'], newRole);
-                                        }
-                                      },
-                                      items: <String>['admin', 'user', 'moderator', 'rebe']
-                                          .map<DropdownMenuItem<String>>((String value) {
-                                        return DropdownMenuItem<String>(
-                                          value: value,
-                                          child: Text(value),
-                                        );
-                                      }).toList(),
-                                      dropdownColor: Colors.grey[850], // Set background color for the dropdown
-                                      style: const TextStyle(color: Colors.white),
-                                    ),
-                                  ],
+                              elevation: 3,
+                              margin: const EdgeInsets.symmetric(vertical: 10),
+                              child: ListTile(
+                                title: Text(user['username'] ?? 'Неизвестный'),
+                                subtitle: Text('Роль: ${user['role'] ?? 'Не определено'}'),
+                                trailing: DropdownButton<String>(
+                                  value: user['role'],
+                                  items: ['admin', 'user', 'moderator', 'rebe']
+                                      .map((role) => DropdownMenuItem(value: role, child: Text(role)))
+                                      .toList(),
+                                  onChanged: (newRole) => _changeUserRole(user['id'], newRole!),
                                 ),
                               ),
                             );
                           }).toList(),
                         )
-                      : Container(), // Removed 'Нет пользователей' text
+                      : const Center(child: Text('Нет пользователей')),
             ],
           ),
         ),
