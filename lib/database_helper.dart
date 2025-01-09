@@ -2,25 +2,41 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:crypto/crypto.dart';
 import 'dart:convert';
 import 'package:logger/logger.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/timezone.dart' as tz;
+import 'package:timezone/data/latest.dart' as tz_data;
 
 class DatabaseHelper {
   static final DatabaseHelper instance = DatabaseHelper._init();
   final FirebaseFirestore _firestore = FirebaseFirestore.instance;
   final Logger _logger = Logger();
+  final FlutterLocalNotificationsPlugin flutterLocalNotificationsPlugin = FlutterLocalNotificationsPlugin();
 
   DatabaseHelper._init();
+
+  // ------------------- Инициализация локальных уведомлений -------------------
+  Future<void> initNotifications() async {
+    tz_data.initializeTimeZones(); // Инициализация часовых поясов
+    const AndroidInitializationSettings initializationSettingsAndroid = AndroidInitializationSettings('app_icon');
+    final InitializationSettings initializationSettings = InitializationSettings(android: initializationSettingsAndroid);
+    await flutterLocalNotificationsPlugin.initialize(initializationSettings);
+  }
 
   // ------------------- Методы для новостей -------------------
 
   // Добавление новости
   Future<void> insertNews(String title, String content) async {
     try {
+      // Добавление новости в Firestore
       await _firestore.collection('news').add({
         'title': title,
         'content': content,
         'timestamp': FieldValue.serverTimestamp(),
       });
       _logger.i('Новость успешно добавлена');
+
+      // Отправка уведомления через минуту
+      _sendNotification("Появились новые новости", "Загляните, чтобы не пропустить!");
     } catch (e) {
       _logger.e('Ошибка добавления новости: $e');
       rethrow;
@@ -66,6 +82,7 @@ class DatabaseHelper {
   // Добавление события
   Future<void> insertEvent(String title, String content, String imageBase64) async {
     try {
+      // Добавление события в Firestore
       await _firestore.collection('events').add({
         'title': title,
         'content': content,
@@ -74,6 +91,9 @@ class DatabaseHelper {
       });
 
       _logger.i('Событие успешно добавлено');
+
+      // Отправка уведомления через минуту
+      _sendNotification("Появилось новое событие", "Загляните, чтобы не пропустить!");
     } catch (e) {
       _logger.e('Ошибка добавления события: $e');
       rethrow;
@@ -198,6 +218,31 @@ class DatabaseHelper {
       _logger.e('Ошибка обновления роли пользователя: $e');
       rethrow;
     }
+  }
+
+  // ------------------- Логика уведомлений -------------------
+
+  // Отправка уведомления через минуту
+  Future<void> _sendNotification(String title, String message) async {
+    var scheduledTime = tz.TZDateTime.now(tz.local).add(Duration(minutes: 1)); // Создаем TZDateTime
+    await flutterLocalNotificationsPlugin.zonedSchedule(
+      0,
+      title, // Динамическое название
+      message, // Динамическое сообщение
+      scheduledTime,
+      NotificationDetails(
+        android: AndroidNotificationDetails(
+          'your_channel_id',
+          'your_channel_name',
+          channelDescription: 'your_channel_description',
+          importance: Importance.high,
+          priority: Priority.high,
+        ),
+      ),
+      uiLocalNotificationDateInterpretation: UILocalNotificationDateInterpretation.absoluteTime,
+      androidScheduleMode: AndroidScheduleMode.exactAllowWhileIdle, // Новый обязательный параметр
+      matchDateTimeComponents: DateTimeComponents.time,
+    );
   }
 
   // ------------------- Вспомогательные методы -------------------

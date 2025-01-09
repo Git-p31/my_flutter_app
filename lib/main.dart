@@ -1,8 +1,6 @@
-// Импорты
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:package_info_plus/package_info_plus.dart';
 import 'package:image_picker/image_picker.dart'; // Для выбора фото
 import 'firebase_options.dart';
 import 'pages/broadcasts_page.dart';
@@ -15,18 +13,28 @@ import 'pages/auth_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/cards_page.dart';
 import 'dart:io';
+import 'package:firebase_messaging/firebase_messaging.dart'; // Для push уведомлений
+import 'package:logger/logger.dart'; // Для логирования
 
 // Точка входа в приложение
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   try {
+    // Инициализация Firebase
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler); // Обработчик уведомлений в фоновом режиме
     runApp(const MyApp());
   } catch (e) {
     runApp(ErrorApp(message: 'Ошибка инициализации Firebase: $e'));
   }
+}
+
+// Обработчик сообщений в фоне
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  final logger = Logger();
+  logger.d('Background message: ${message.notification?.title}, ${message.notification?.body}');
 }
 
 // Экран с ошибкой при сбое Firebase
@@ -64,37 +72,67 @@ class MyApp extends StatefulWidget {
 
 class _MyAppState extends State<MyApp> {
   bool _isDarkTheme = false;
-  String _appVersion = '2.0.0';
+  bool _notificationsEnabled = false; // Добавляем состояние для уведомлений
 
   @override
   void initState() {
     super.initState();
     _loadPreferences();
-    _getAppVersion();
+    _initializeFCM();
   }
 
+  // Загрузка предпочтений (темы и уведомлений)
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
     setState(() {
       _isDarkTheme = prefs.getBool('isDarkTheme') ?? false;
+      _notificationsEnabled = prefs.getBool('notificationsEnabled') ?? false; // Загружаем настройки уведомлений
     });
   }
 
-  Future<void> _getAppVersion() async {
-    final packageInfo = await PackageInfo.fromPlatform();
-    if (!mounted) return;
-    setState(() {
-      _appVersion = packageInfo.version;
+  // Инициализация FCM
+  Future<void> _initializeFCM() async {
+    FirebaseMessaging messaging = FirebaseMessaging.instance;
+    // Получение токена устройства
+    String? token = await messaging.getToken();
+    final logger = Logger();
+    logger.d('FCM Token: $token');
+
+    // Запрос на разрешение получения уведомлений
+    NotificationSettings settings = await messaging.requestPermission();
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      logger.d('User granted permission for push notifications');
+    } else {
+      logger.d('User declined or has not accepted permission');
+    }
+
+    FirebaseMessaging.onMessage.listen((RemoteMessage message) {
+      logger.d('Message received: ${message.notification?.title}, ${message.notification?.body}');
+      // Дополнительная обработка уведомлений
+    });
+
+    FirebaseMessaging.onMessageOpenedApp.listen((RemoteMessage message) {
+      logger.d('Message clicked! ${message.notification?.title}, ${message.notification?.body}');
     });
   }
 
+  // Переключение темы
   void _toggleTheme(bool isDark) async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('isDarkTheme', isDark);
     if (!mounted) return;
     setState(() {
       _isDarkTheme = isDark;
+    });
+  }
+
+  // Переключение уведомлений
+  void _toggleNotifications(bool isEnabled) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('notificationsEnabled', isEnabled);
+    setState(() {
+      _notificationsEnabled = isEnabled;
     });
   }
 
@@ -128,7 +166,8 @@ class _MyAppState extends State<MyApp> {
       home: HomePage(
         onToggleTheme: _toggleTheme,
         isDarkTheme: _isDarkTheme,
-        appVersion: _appVersion,
+        notificationsEnabled: _notificationsEnabled, // Передаем настройки уведомлений
+        onToggleNotifications: _toggleNotifications, // Передаем функцию для изменения состояния уведомлений
       ),
       debugShowCheckedModeBanner: false,
     );
@@ -139,13 +178,15 @@ class _MyAppState extends State<MyApp> {
 class HomePage extends StatefulWidget {
   final Function(bool) onToggleTheme;
   final bool isDarkTheme;
-  final String appVersion;
+  final bool notificationsEnabled; // Добавляем параметр для уведомлений
+  final Function(bool) onToggleNotifications; // Функция для переключения уведомлений
 
   const HomePage({
     super.key,
     required this.onToggleTheme,
     required this.isDarkTheme,
-    required this.appVersion,
+    required this.notificationsEnabled, // Добавляем параметр
+    required this.onToggleNotifications, // Добавляем функцию
   });
 
   @override
@@ -176,6 +217,7 @@ class _HomePageState extends State<HomePage> {
     _loadUserData();
   }
 
+  // Загрузка роли пользователя
   Future<void> _loadUserRole() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
@@ -192,6 +234,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Загрузка данных пользователя
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     if (!mounted) return;
@@ -201,6 +244,7 @@ class _HomePageState extends State<HomePage> {
     });
   }
 
+  // Выбор фото пользователя
   Future<void> _selectPhoto() async {
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery);
@@ -213,6 +257,7 @@ class _HomePageState extends State<HomePage> {
     }
   }
 
+  // Обработка выбора элемента бокового меню
   void _onItemTapped(int index) {
     setState(() {
       _selectedIndex = index;
@@ -220,6 +265,7 @@ class _HomePageState extends State<HomePage> {
     Navigator.pop(context); // Закрытие бокового меню
   }
 
+  // Открытие профиля пользователя
   void _openProfile() async {
     final prefs = await SharedPreferences.getInstance();
     final isLoggedIn = prefs.getBool('isLoggedIn') ?? false;
@@ -267,8 +313,8 @@ class _HomePageState extends State<HomePage> {
               builder: (context) => SettingsPage(
                 onToggleTheme: widget.onToggleTheme,
                 isDarkTheme: widget.isDarkTheme,
-                appVersion: widget.appVersion,
-                updateAvailable: false, updateUrl: '',
+                notificationsEnabled: widget.notificationsEnabled, // Передаем параметр
+                onToggleNotifications: widget.onToggleNotifications, appVersion: '', // Передаем функцию
               ),
             ),
           ),
@@ -317,6 +363,7 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
+  // Виджет для элементов бокового меню
   Widget _buildDrawerItem(IconData icon, String title, dynamic action) {
     return ListTile(
       leading: Icon(icon, color: Colors.blue),

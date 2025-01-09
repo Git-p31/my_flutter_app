@@ -14,7 +14,7 @@ dependencies:
     sdk: flutter
 
   # Database dependencies
-  path: ^1.8.3                  # Работа с файловыми путями
+  path: ^1.9.0                  # Работа с файловыми путями
   path_provider: ^2.1.2         # Доступ к файловой системе
   sqflite: ^2.2.8+4             # Локальная база данных SQLite
   crypto: ^3.0.3                # Хеширование данных
@@ -25,6 +25,8 @@ dependencies:
   cached_network_image: ^3.3.1  # Кэширование изображений
   video_player: ^2.8.2          # Воспроизведение видео
   package_info_plus: ^8.1.2     # Информация о приложении
+  flutter_local_notifications: ^18.0.1  # Обновленная версия уведомлений
+  
 
   # Firebase dependencies
   cloud_firestore: ^5.6.0       # Firebase Firestore
@@ -51,10 +53,13 @@ dependencies:
   # Управление состоянием
   provider: ^6.1.2              # Управление состоянием
 
+  # Время
+  timezone: ^0.10.0            # Работа с часовыми поясами
+
 dev_dependencies:
   flutter_test:
     sdk: flutter
-  flutter_launcher_icons: ^0.13.1
+  flutter_launcher_icons: ^0.14.2
 
   # Анализатор кода для Flutter
   flutter_lints: ^5.0.0
@@ -72,3 +77,7 @@ flutter_launcher_icons:
   ios: true
   image_path: "assets/icon/app_icon.png"
   remove_alpha_ios: true
+
+plugin:
+  platforms:
+    linux: false  # Отключаем поддержку Linux для flutter_local_notifications
