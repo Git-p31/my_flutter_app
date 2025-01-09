@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-import 'package:image_picker/image_picker.dart'; // Для выбора фото
 import 'firebase_options.dart';
 import 'pages/broadcasts_page.dart';
 import 'pages/charity_page.dart';
@@ -12,8 +11,6 @@ import 'pages/profile_page.dart';
 import 'pages/auth_page.dart';
 import 'pages/settings_page.dart';
 import 'pages/cards_page.dart';
-import 'dart:io';
-
 
 // Точка входа в приложение
 void main() async {
@@ -100,22 +97,12 @@ class _MyAppState extends State<MyApp> {
               primaryColor: Colors.blue,
               appBarTheme: const AppBarTheme(backgroundColor: Colors.black),
               iconTheme: const IconThemeData(color: Colors.blue),
-              textTheme: const TextTheme(
-                bodyLarge: TextStyle(color: Colors.white),
-                bodyMedium: TextStyle(color: Colors.white),
-                titleLarge: TextStyle(color: Colors.blue),
-              ),
             )
           : ThemeData.light().copyWith(
               scaffoldBackgroundColor: Colors.white,
               primaryColor: Colors.blue,
               appBarTheme: const AppBarTheme(backgroundColor: Colors.blue),
               iconTheme: const IconThemeData(color: Colors.black),
-              textTheme: const TextTheme(
-                bodyLarge: TextStyle(color: Colors.black),
-                bodyMedium: TextStyle(color: Colors.black),
-                titleLarge: TextStyle(color: Colors.blue),
-              ),
             ),
       home: HomePage(
         onToggleTheme: _toggleTheme,
@@ -144,8 +131,7 @@ class HomePage extends StatefulWidget {
 class _HomePageState extends State<HomePage> {
   int _selectedIndex = 0;
   String _userRole = 'user';
-  String _userName = 'Пользователь';
-  String? _userPhoto;
+  final String _userName = 'Пользователь';
 
   final List<String> _titles = [
     'Новости',
@@ -162,7 +148,6 @@ class _HomePageState extends State<HomePage> {
   void initState() {
     super.initState();
     _loadUserRole();
-    _loadUserData();
   }
 
   // Загрузка роли пользователя
@@ -180,29 +165,6 @@ class _HomePageState extends State<HomePage> {
         if (_userRole == 'admin' || _userRole == 'rebe' || _userRole == 'moderator') const CardsPage(),
       ];
     });
-  }
-
-  // Загрузка данных пользователя
-  Future<void> _loadUserData() async {
-    final prefs = await SharedPreferences.getInstance();
-    if (!mounted) return;
-    setState(() {
-      _userName = prefs.getString('username') ?? 'Пользователь';
-      _userPhoto = prefs.getString('userPhoto');
-    });
-  }
-
-  // Выбор фото пользователя
-  Future<void> _selectPhoto() async {
-    final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery);
-    if (pickedFile != null) {
-      final prefs = await SharedPreferences.getInstance();
-      await prefs.setString('userPhoto', pickedFile.path);
-      setState(() {
-        _userPhoto = pickedFile.path;
-      });
-    }
   }
 
   // Обработка выбора элемента бокового меню
@@ -235,7 +197,7 @@ class _HomePageState extends State<HomePage> {
             userRole: userRole,
           ),
         ),
-      ).then((_) => _loadUserData());
+      );
     } else {
       Navigator.push(
         context,
@@ -261,7 +223,7 @@ class _HomePageState extends State<HomePage> {
               builder: (context) => SettingsPage(
                 onToggleTheme: widget.onToggleTheme,
                 isDarkTheme: widget.isDarkTheme,
-                appVersion: '',
+                appVersion: '2.0.0', // Текущая версия приложения
               ),
             ),
           ),
@@ -277,23 +239,16 @@ class _HomePageState extends State<HomePage> {
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            GestureDetector(
-              onTap: _selectPhoto, // Открытие выбора фото
-              child: UserAccountsDrawerHeader(
-                decoration: const BoxDecoration(color: Colors.blue),
-                accountName: Text(
-                  _userName,
-                  style: const TextStyle(fontSize: 16),
-                ),
-                accountEmail: null,
-                currentAccountPicture: CircleAvatar(
-                  backgroundImage: _userPhoto != null
-                      ? FileImage(File(_userPhoto!))
-                      : null,
-                  child: _userPhoto == null
-                      ? const Icon(Icons.person, size: 40)
-                      : null,
-                ),
+            UserAccountsDrawerHeader(
+              decoration: const BoxDecoration(color: Colors.blue),
+              accountName: Text(
+                _userName,
+                style: const TextStyle(fontSize: 18),
+              ),
+              accountEmail: null,
+              currentAccountPicture: const CircleAvatar(
+                backgroundColor: Colors.white,
+                child: Icon(Icons.person, size: 40),
               ),
             ),
             _buildDrawerItem(Icons.account_circle, 'Профиль', _openProfile),

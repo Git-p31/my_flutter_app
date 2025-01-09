@@ -55,7 +55,7 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   bool _isDarkTheme = false; // Состояние тёмной темы
-  String appVersion = '2.0.0';  // Текущая версия приложения
+  String appVersion = '0.0.1';  // Текущая версия приложения
 
   void _toggleTheme(bool isDark) {
     setState(() {
