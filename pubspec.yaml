@@ -64,7 +64,7 @@ flutter:
 
   # Подключение мультимедиа
   assets:
-    - assets/splash_video.mp4
+    - assets/charity_video.mp4
     
 flutter_launcher_icons:
   android: true
