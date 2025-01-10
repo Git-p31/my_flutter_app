@@ -223,7 +223,7 @@ class _HomePageState extends State<HomePage> {
               builder: (context) => SettingsPage(
                 onToggleTheme: widget.onToggleTheme,
                 isDarkTheme: widget.isDarkTheme,
-                appVersion: '2.0.0', // Текущая версия приложения
+                appVersion: '0.0.10', // Текущая версия приложения
               ),
             ),
           ),
